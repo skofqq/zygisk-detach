@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Ажырату тізімі тазартылды</string>
     <string name="snackbar_detached">Ажыратылған қолданбалар: %1$d</string>
     <string name="no_apps">Қолданбалар табылмады</string>
+    <string name="group_detached">Ажыратылған</string>
+    <string name="group_other">Басқалары</string>
 </resources>

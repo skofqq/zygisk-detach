@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Trennliste geleert</string>
     <string name="snackbar_detached">Getrennte Apps: %1$d</string>
     <string name="no_apps">Keine Apps gefunden</string>
+    <string name="group_detached">Getrennt</string>
+    <string name="group_other">Andere Apps</string>
 </resources>

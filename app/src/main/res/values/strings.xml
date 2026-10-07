@@ -21,4 +21,6 @@
     <string name="snackbar_emptied">Emptied the detach list</string>
     <string name="snackbar_detached">Detached apps: %1$d</string>
     <string name="no_apps">No apps found</string>
+    <string name="group_detached">Detached</string>
+    <string name="group_other">Other apps</string>
 </resources>

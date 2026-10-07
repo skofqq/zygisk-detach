@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Список відв’язування очищено</string>
     <string name="snackbar_detached">Відв’язано застосунків: %1$d</string>
     <string name="no_apps">Застосунки не знайдено</string>
+    <string name="group_detached">Відв’язані</string>
+    <string name="group_other">Інші</string>
 </resources>

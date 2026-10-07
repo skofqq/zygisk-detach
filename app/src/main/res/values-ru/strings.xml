@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Список отвязки очищен</string>
     <string name="snackbar_detached">Отвязано приложений: %1$d</string>
     <string name="no_apps">Приложения не найдены</string>
+    <string name="group_detached">Отвязанные</string>
+    <string name="group_other">Остальные</string>
 </resources>

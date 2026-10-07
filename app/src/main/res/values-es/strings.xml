@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Lista de desvinculación vaciada</string>
     <string name="snackbar_detached">Apps desvinculadas: %1$d</string>
     <string name="no_apps">No se encontraron apps</string>
+    <string name="group_detached">Desvinculadas</string>
+    <string name="group_other">Otras apps</string>
 </resources>

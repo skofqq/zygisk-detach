@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -209,12 +210,13 @@ private fun AppRow(
     app: DetachedApp,
     shape: RoundedCornerShape,
     icon: ImageBitmap,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = shape,
         color = if (app.detached) MaterialTheme.colorScheme.secondaryContainer
         else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .toggleable(
                 value = app.detached,
@@ -456,9 +458,12 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
 
     val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
     val detachedCount = apps.count { it.detached }
-    var appliedCount by remember { mutableIntStateOf(0) }
+    // what the module actually has detached; pending switch changes don't count until applied
+    var applied by remember { mutableStateOf(emptySet<String>()) }
     LaunchedEffect(state) {
-        if (state is LoadState.Loaded) appliedCount = detachedCount
+        if (state is LoadState.Loaded) {
+            applied = apps.filter { it.detached }.map { it.packageName }.toSet()
+        }
     }
 
     Scaffold(
@@ -468,7 +473,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 title = { Text("zygisk-detach") },
                 subtitle = {
                     Text(
-                        if (state is LoadState.Loaded) stringResource(R.string.subtitle_detached, appliedCount)
+                        if (state is LoadState.Loaded) stringResource(R.string.subtitle_detached, applied.size)
                         else stringResource(R.string.subtitle_hint)
                     )
                 },
@@ -494,7 +499,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                                 if (detached.isEmpty()) runShell("$DETACH_BIN reset")
                                 else runShell("$DETACH_BIN detachall ${detached.joinToString(" ")}")
                             }
-                            if (result.ok) appliedCount = detached.size
+                            if (result.ok) applied = detached.toSet()
                             snackbarHostState.showSnackbar(
                                 when {
                                     !result.ok -> resources.getString(R.string.snackbar_error, result.err)
@@ -539,6 +544,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 packageManager = packageManager,
                 uninstalledIcon = uninstalledIcon,
                 source = source,
+                applied = applied,
             )
         }
     }
@@ -552,6 +558,7 @@ private fun AppsList(
     packageManager: PackageManager,
     uninstalledIcon: ImageBitmap,
     source: AppSource,
+    applied: Set<String>,
 ) {
     var query by remember { mutableStateOf("") }
     var filters by remember { mutableStateOf(emptySet<AppFilter>()) }
@@ -562,6 +569,9 @@ private fun AppsList(
                 app.packageName.contains(query, ignoreCase = true) ||
                 app.label.contains(query, ignoreCase = true))
     }
+    // Detached apps always go first, as their own group. Grouping follows the applied state so
+    // rows don't jump around while switches are being flipped.
+    val (detachedGroup, otherGroup) = shown.partition { it.packageName in applied }
 
     LazyColumn(
         state = listState,
@@ -595,21 +605,11 @@ private fun AppsList(
                 )
             }
         }
-        itemsIndexed(shown, key = { _, app -> app.packageName }) { index, app ->
-            val icon = iconCache.getOrPut(app.packageName) {
-                if (!app.installed) uninstalledIcon
-                else try {
-                    packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
-                } catch (_: Exception) {
-                    uninstalledIcon
-                }
-            }
-            AppRow(
-                app = app,
-                shape = segmentShape(index, shown.size),
-                icon = icon,
-            )
-        }
+        appGroup(R.string.group_detached, detachedGroup, iconCache, packageManager, uninstalledIcon)
+        appGroup(
+            if (detachedGroup.isEmpty()) 0 else R.string.group_other,
+            otherGroup, iconCache, packageManager, uninstalledIcon
+        )
     }
 }
 
@@ -624,5 +624,41 @@ class MainActivity : ComponentActivity() {
                 DetachScreen(packageManager, uninstalledIcon)
             }
         }
+    }
+}
+
+private fun LazyListScope.appGroup(
+    @StringRes title: Int,
+    group: List<DetachedApp>,
+    iconCache: HashMap<String, ImageBitmap>,
+    packageManager: PackageManager,
+    uninstalledIcon: ImageBitmap,
+) {
+    if (group.isEmpty()) return
+    if (title != 0) {
+        item(key = "title-$title") {
+            Text(
+                "${stringResource(title)} · ${group.size}",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 6.dp)
+            )
+        }
+    }
+    itemsIndexed(group, key = { _, app -> app.packageName }) { index, app ->
+        val icon = iconCache.getOrPut(app.packageName) {
+            if (!app.installed) uninstalledIcon
+            else try {
+                packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
+            } catch (_: Exception) {
+                uninstalledIcon
+            }
+        }
+        AppRow(
+            app = app,
+            shape = segmentShape(index, group.size),
+            icon = icon,
+            modifier = Modifier.animateItem()
+        )
     }
 }

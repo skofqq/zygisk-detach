@@ -20,4 +20,6 @@
     <string name="snackbar_emptied">Elenco di scollegamento svuotato</string>
     <string name="snackbar_detached">App scollegate: %1$d</string>
     <string name="no_apps">Nessuna app trovata</string>
+    <string name="group_detached">Scollegate</string>
+    <string name="group_other">Altre app</string>
 </resources>
