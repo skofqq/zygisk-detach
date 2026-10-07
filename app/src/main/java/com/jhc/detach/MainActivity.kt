@@ -8,7 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +44,11 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -57,13 +64,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -107,7 +117,9 @@ private fun String.splitn() =
     else this.split('\n')
 
 private fun loadApps(packageManager: PackageManager): LoadState {
-    Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
+    if (Shell.getCachedShell() == null) {
+        Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
+    }
     if (!Shell.getShell().isRoot) return LoadState.Failed("Root access is required")
     if (!runShell("test -f $DETACH_BIN").ok) {
         return LoadState.Failed("The zygisk-detach module is not installed")
@@ -169,11 +181,32 @@ private fun AppRow(
         ListItem(
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             leadingContent = {
-                Image(
-                    bitmap = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(44.dp)
+                // Expressive shape container: a "cookie" for detached apps, a circle otherwise
+                val iconShape = if (app.detached) MaterialShapes.Cookie9Sided.toShape()
+                else MaterialShapes.Circle.toShape()
+                val rotation by animateFloatAsState(
+                    if (app.detached) 40f else 0f,
+                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
                 )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(52.dp)
+                        .graphicsLayer { rotationZ = rotation }
+                        .clip(iconShape)
+                        .background(
+                            if (app.detached) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                ) {
+                    Image(
+                        bitmap = icon,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .graphicsLayer { rotationZ = -rotation }
+                    )
+                }
             },
             headlineContent = {
                 Text(
@@ -269,7 +302,9 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 @Composable
 private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageBitmap) {
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
-    LaunchedEffect(Unit) {
+    var reloadKey by remember { mutableIntStateOf(0) }
+    LaunchedEffect(reloadKey) {
+        state = LoadState.Loading
         state = withContext(Dispatchers.IO) {
             try {
                 loadApps(packageManager)
@@ -283,7 +318,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val fabExpanded by remember { derivedStateOf { !listState.isScrollInProgress } }
+    val toolbarExpanded by remember { derivedStateOf { !listState.isScrollInProgress } }
 
     val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
     val detachedCount = apps.count { it.detached }
@@ -303,29 +338,44 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             if (state is LoadState.Loaded) {
-                MediumExtendedFloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            val detached = apps.filter { it.detached }.map { it.packageName }
-                            val result = withContext(Dispatchers.IO) {
-                                if (detached.isEmpty()) runShell("$DETACH_BIN reset")
-                                else runShell("$DETACH_BIN detachall ${detached.joinToString(" ")}")
-                            }
-                            snackbarHostState.showSnackbar(
-                                when {
-                                    !result.ok -> "Error: ${result.err}"
-                                    detached.isEmpty() -> "Emptied the detach list"
-                                    else -> "Detached ${detached.size} apps"
+                HorizontalFloatingToolbar(
+                    expanded = toolbarExpanded,
+                    colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+                    floatingActionButton = {
+                        FloatingToolbarDefaults.VibrantFloatingActionButton(
+                            onClick = {
+                                scope.launch {
+                                    val detached = apps.filter { it.detached }.map { it.packageName }
+                                    val result = withContext(Dispatchers.IO) {
+                                        if (detached.isEmpty()) runShell("$DETACH_BIN reset")
+                                        else runShell("$DETACH_BIN detachall ${detached.joinToString(" ")}")
+                                    }
+                                    snackbarHostState.showSnackbar(
+                                        when {
+                                            !result.ok -> "Error: ${result.err}"
+                                            detached.isEmpty() -> "Emptied the detach list"
+                                            else -> "Detached ${detached.size} apps"
+                                        }
+                                    )
                                 }
-                            )
+                            }
+                        ) {
+                            Icon(Icons.Filled.Check, contentDescription = "Detach")
                         }
-                    },
-                    expanded = fabExpanded,
-                    icon = { Icon(Icons.Filled.Check, contentDescription = null) },
-                    text = { Text("Detach") }
-                )
+                    }
+                ) {
+                    IconButton(onClick = { reloadKey++ }) {
+                        Icon(Icons.Filled.Refresh, contentDescription = "Reload")
+                    }
+                    Text(
+                        "$detachedCount selected",
+                        style = MaterialTheme.typography.labelLargeEmphasized,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -388,7 +438,7 @@ private fun AppsList(
         state = listState,
         contentPadding = PaddingValues(
             top = innerPadding.calculateTopPadding(),
-            // keep the last items scrollable above the gesture bar and the Detach button
+            // keep the last items scrollable above the gesture bar and the floating toolbar
             bottom = innerPadding.calculateBottomPadding() + 104.dp,
             start = 16.dp,
             end = 16.dp
