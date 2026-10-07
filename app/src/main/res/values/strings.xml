@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">zygisk-detach</string>
+    <string name="section_all">All</string>
+    <string name="section_user">User</string>
+    <string name="section_system">System</string>
+    <string name="filter_detached">Detached</string>
+    <string name="filter_not_detached">Not detached</string>
+    <string name="filter_updated_system">Updated system</string>
+    <string name="filter_not_installed">Not installed</string>
+    <string name="error_no_root">Root access is required</string>
+    <string name="error_no_module">The zygisk-detach module is not installed</string>
+    <string name="not_installed">%1$s · not installed</string>
+    <string name="action_detach">Detach</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_reload">Reload</string>
+    <string name="search_hint">Search apps</string>
+    <string name="subtitle_hint">Detach apps from Play Store updates</string>
+    <string name="subtitle_detached">Detached from Play Store: %1$d</string>
+    <string name="snackbar_error">Error: %1$s</string>
+    <string name="snackbar_emptied">Emptied the detach list</string>
+    <string name="snackbar_detached">Detached apps: %1$d</string>
+    <string name="no_apps">No apps found</string>
+    <string name="group_detached">Detached</string>
+    <string name="group_other">Other apps</string>
+</resources>
