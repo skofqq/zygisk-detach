@@ -1,11 +1,11 @@
 package com.jhc.detach
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,6 +56,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,10 +68,11 @@ import com.topjohnwu.superuser.Shell
 fun AppsList(
     packageManager: PackageManager,
     renderedApps: MutableState<List<DetachedApp>>,
-    uninstalledAppBitmap: ImageBitmap
+    uninstalledAppBitmap: ImageBitmap,
+    contentPadding: PaddingValues = PaddingValues()
 ) {
 
-    LazyColumn {
+    LazyColumn(contentPadding = contentPadding) {
         items(renderedApps.value, key = { it.packageName }) { app ->
             OutlinedCard(
                 modifier = Modifier.padding(3.dp)
@@ -230,8 +234,8 @@ fun String.splitn() =
     else this.split('\n')
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val toaster = Toaster(applicationContext)
@@ -296,15 +300,30 @@ class MainActivity : ComponentActivity() {
                                 Text("Detach", modifier = Modifier.padding(8.dp))
                             }
                         }
-                    }, content = {
-                        Box(modifier = Modifier.padding(3.dp)) {
+                    }, content = { innerPadding ->
+                        // Keep the header below the status bar / display cutout. The list still
+                        // scrolls behind the navigation bar, but its last items can be scrolled
+                        // clear of both the navigation bar and the Detach button.
+                        val layoutDirection = LocalLayoutDirection.current
+                        Box(
+                            modifier = Modifier
+                                .padding(
+                                    top = innerPadding.calculateTopPadding(),
+                                    start = innerPadding.calculateStartPadding(layoutDirection),
+                                    end = innerPadding.calculateEndPadding(layoutDirection)
+                                )
+                                .padding(3.dp)
+                        ) {
                             Column {
                                 SearchBar(detachedApps, renderedApps)
                                 AppsFilter(detachedApps, renderedApps)
                                 AppsList(
                                     packageManager = packageManager,
                                     renderedApps = renderedApps,
-                                    getDrawable(R.mipmap.unistalled_app)!!.toBitmap().asImageBitmap()
+                                    getDrawable(R.mipmap.unistalled_app)!!.toBitmap().asImageBitmap(),
+                                    contentPadding = PaddingValues(
+                                        bottom = innerPadding.calculateBottomPadding() + 88.dp
+                                    )
                                 )
                             }
                         }
