@@ -9,12 +9,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -88,6 +90,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -321,6 +324,8 @@ private fun BottomBar(
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         modifier = Modifier
             .fillMaxWidth()
+            // don't let taps in the gaps around the bar reach the list rows underneath
+            .pointerInput(Unit) { detectTapGestures { } }
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -352,15 +357,20 @@ private fun BottomBar(
                             )
                             .height(52.dp)
                             .padding(horizontal = 16.dp)
-                            .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
                     ) {
-                        if (selected) {
-                            Icon(
-                                item.icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Spacer(Modifier.size(8.dp))
+                        AnimatedVisibility(
+                            visible = selected,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut()
+                        ) {
+                            Row {
+                                Icon(
+                                    item.icon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Spacer(Modifier.size(8.dp))
+                            }
                         }
                         Text(
                             stringResource(item.label),
