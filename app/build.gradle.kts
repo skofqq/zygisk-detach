@@ -1,3 +1,4 @@
+// Modified by skofqq in 2026: Material 3 Expressive redesign. Original: j-hc/zygisk-detach-app (Apache-2.0).
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")

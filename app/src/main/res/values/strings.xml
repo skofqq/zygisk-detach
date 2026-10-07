@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modified by skofqq in 2026: Material 3 Expressive redesign. Original: j-hc/zygisk-detach-app (Apache-2.0). -->
 <resources>
     <string name="app_name" translatable="false">zygisk-detach</string>
     <string name="section_all">All</string>
