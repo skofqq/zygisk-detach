@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Барлығы</string>
+    <string name="section_user">Менікі</string>
+    <string name="section_system">Жүйелік</string>
+    <string name="filter_detached">Ажыратылған</string>
+    <string name="filter_not_detached">Ажыратылмаған</string>
+    <string name="filter_updated_system">Жаңартылған жүйелік</string>
+    <string name="filter_not_installed">Орнатылмаған</string>
+    <string name="error_no_root">Root рұқсаты қажет</string>
+    <string name="error_no_module">zygisk-detach модулі орнатылмаған</string>
+    <string name="not_installed">%1$s · орнатылмаған</string>
+    <string name="action_detach">Ажырату</string>
+    <string name="action_clear">Тазалау</string>
+    <string name="action_reload">Жаңарту</string>
+    <string name="search_hint">Қолданбаларды іздеу</string>
+    <string name="subtitle_hint">Қолданбаларды Play Store жаңартуларынан ажыратыңыз</string>
+    <string name="subtitle_detached">Play Store-дан ажыратылған: %1$d</string>
+    <string name="snackbar_error">Қате: %1$s</string>
+    <string name="snackbar_emptied">Ажырату тізімі тазартылды</string>
+    <string name="snackbar_detached">Ажыратылған қолданбалар: %1$d</string>
+    <string name="no_apps">Қолданбалар табылмады</string>
+</resources>

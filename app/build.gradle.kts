@@ -46,6 +46,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    androidResources {
+        // per-app language picker in Android 13+ settings
+        generateLocaleConfig = true
+    }
     buildFeatures {
         compose = true
     }

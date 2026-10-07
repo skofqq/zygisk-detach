@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -87,7 +88,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -112,10 +115,10 @@ class DetachedApp(
 }
 
 /** Main sections, switched from the bottom bar. */
-private enum class AppSource(val label: String, val icon: ImageVector) {
-    ALL("All", Icons.Filled.Home),
-    USER("User", Icons.Filled.Person),
-    SYSTEM("System", Icons.Filled.Settings);
+private enum class AppSource(@StringRes val label: Int, val icon: ImageVector) {
+    ALL(R.string.section_all, Icons.Filled.Home),
+    USER(R.string.section_user, Icons.Filled.Person),
+    SYSTEM(R.string.section_system, Icons.Filled.Settings);
 
     fun matches(app: DetachedApp) = when (this) {
         ALL -> true
@@ -125,16 +128,16 @@ private enum class AppSource(val label: String, val icon: ImageVector) {
 }
 
 /** Extra filters, toggled with chips above the list. */
-private enum class AppFilter(val label: String, val matches: (DetachedApp) -> Boolean) {
-    DETACHED("Detached", { it.detached }),
-    NOT_DETACHED("Not detached", { !it.detached }),
-    UPDATED_SYSTEM("Updated system", { it.updatedSystem }),
-    NOT_INSTALLED("Not installed", { !it.installed }),
+private enum class AppFilter(@StringRes val label: Int, val matches: (DetachedApp) -> Boolean) {
+    DETACHED(R.string.filter_detached, { it.detached }),
+    NOT_DETACHED(R.string.filter_not_detached, { !it.detached }),
+    UPDATED_SYSTEM(R.string.filter_updated_system, { it.updatedSystem }),
+    NOT_INSTALLED(R.string.filter_not_installed, { !it.installed }),
 }
 
 private sealed interface LoadState {
     data object Loading : LoadState
-    data class Failed(val message: String) : LoadState
+    data class Failed(@StringRes val messageRes: Int = 0, val message: String = "") : LoadState
     data class Loaded(val apps: List<DetachedApp>) : LoadState
 }
 
@@ -153,9 +156,9 @@ private fun loadApps(packageManager: PackageManager): LoadState {
     if (Shell.getCachedShell() == null) {
         Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
     }
-    if (!Shell.getShell().isRoot) return LoadState.Failed("Root access is required")
+    if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
     if (!runShell("test -f $DETACH_BIN").ok) {
-        return LoadState.Failed("The zygisk-detach module is not installed")
+        return LoadState.Failed(R.string.error_no_module)
     }
 
     val apps = packageManager.getInstalledPackages(0).mapNotNull {
@@ -256,7 +259,8 @@ private fun AppRow(
             },
             supportingContent = {
                 Text(
-                    if (app.installed) app.packageName else "${app.packageName} · not installed",
+                    if (app.installed) app.packageName
+                    else stringResource(R.string.not_installed, app.packageName),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -293,7 +297,7 @@ private fun FilterChips(selected: Set<AppFilter>, onToggle: (AppFilter) -> Unit)
             FilterChip(
                 selected = isSelected,
                 onClick = { onToggle(filter) },
-                label = { Text(filter.label) },
+                label = { Text(stringResource(filter.label)) },
                 leadingIcon = if (isSelected) {
                     { Icon(Icons.Filled.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
                 } else null,
@@ -324,6 +328,7 @@ private fun BottomBar(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
             shadowElevation = 6.dp,
+            modifier = Modifier.weight(1f, fill = false)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -358,7 +363,9 @@ private fun BottomBar(
                             Spacer(Modifier.size(8.dp))
                         }
                         Text(
-                            item.label,
+                            stringResource(item.label),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleMedium,
                             color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
                             else MaterialTheme.colorScheme.onSurfaceVariant
@@ -378,7 +385,7 @@ private fun BottomBar(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(64.dp)
             ) {
-                Icon(Icons.Filled.Check, contentDescription = "Detach")
+                Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_detach))
             }
         }
     }
@@ -390,7 +397,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Search apps") },
+        placeholder = { Text(stringResource(R.string.search_hint)) },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = {
             AnimatedVisibility(query.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -398,7 +405,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
                     onQueryChange("")
                     focusManager.clearFocus()
                 }) {
-                    Icon(Icons.Filled.Close, contentDescription = "Clear")
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_clear))
                 }
             }
         },
@@ -425,7 +432,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
             try {
                 loadApps(packageManager)
             } catch (e: Exception) {
-                LoadState.Failed(e.message ?: e.toString())
+                LoadState.Failed(message = e.message ?: e.toString())
             }
         }
     }
@@ -433,6 +440,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val resources = LocalContext.current.resources
     val listState = rememberLazyListState()
     var source by remember { mutableStateOf(AppSource.ALL) }
 
@@ -450,13 +458,13 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 title = { Text("zygisk-detach") },
                 subtitle = {
                     Text(
-                        if (state is LoadState.Loaded) "$appliedCount detached from Play Store"
-                        else "Detach apps from Play Store updates"
+                        if (state is LoadState.Loaded) stringResource(R.string.subtitle_detached, appliedCount)
+                        else stringResource(R.string.subtitle_hint)
                     )
                 },
                 actions = {
                     IconButton(onClick = { reloadKey++ }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Reload")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_reload))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -479,9 +487,9 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                             if (result.ok) appliedCount = detached.size
                             snackbarHostState.showSnackbar(
                                 when {
-                                    !result.ok -> "Error: ${result.err}"
-                                    detached.isEmpty() -> "Emptied the detach list"
-                                    else -> "Detached ${detached.size} apps"
+                                    !result.ok -> resources.getString(R.string.snackbar_error, result.err)
+                                    detached.isEmpty() -> resources.getString(R.string.snackbar_emptied)
+                                    else -> resources.getString(R.string.snackbar_detached, detached.size)
                                 }
                             )
                         }
@@ -508,7 +516,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    s.message,
+                    if (s.messageRes != 0) stringResource(s.messageRes) else s.message,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -570,7 +578,7 @@ private fun AppsList(
         if (shown.isEmpty()) {
             item(key = "empty") {
                 Text(
-                    "No apps found",
+                    stringResource(R.string.no_apps),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(24.dp)

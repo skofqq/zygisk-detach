@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Все</string>
+    <string name="section_user">Мои</string>
+    <string name="section_system">Системные</string>
+    <string name="filter_detached">Отвязанные</string>
+    <string name="filter_not_detached">Не отвязанные</string>
+    <string name="filter_updated_system">Обновлённые системные</string>
+    <string name="filter_not_installed">Не установлены</string>
+    <string name="error_no_root">Требуется root-доступ</string>
+    <string name="error_no_module">Модуль zygisk-detach не установлен</string>
+    <string name="not_installed">%1$s · не установлено</string>
+    <string name="action_detach">Отвязать</string>
+    <string name="action_clear">Очистить</string>
+    <string name="action_reload">Обновить</string>
+    <string name="search_hint">Поиск приложений</string>
+    <string name="subtitle_hint">Отвяжите приложения от обновлений Play Store</string>
+    <string name="subtitle_detached">Отвязано от Play Store: %1$d</string>
+    <string name="snackbar_error">Ошибка: %1$s</string>
+    <string name="snackbar_emptied">Список отвязки очищен</string>
+    <string name="snackbar_detached">Отвязано приложений: %1$d</string>
+    <string name="no_apps">Приложения не найдены</string>
+</resources>

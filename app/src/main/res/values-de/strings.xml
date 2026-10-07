@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Alle</string>
+    <string name="section_user">Eigene</string>
+    <string name="section_system">System</string>
+    <string name="filter_detached">Getrennt</string>
+    <string name="filter_not_detached">Nicht getrennt</string>
+    <string name="filter_updated_system">Aktualisierte System-Apps</string>
+    <string name="filter_not_installed">Nicht installiert</string>
+    <string name="error_no_root">Root-Zugriff erforderlich</string>
+    <string name="error_no_module">Das Modul zygisk-detach ist nicht installiert</string>
+    <string name="not_installed">%1$s · nicht installiert</string>
+    <string name="action_detach">Trennen</string>
+    <string name="action_clear">Löschen</string>
+    <string name="action_reload">Neu laden</string>
+    <string name="search_hint">Apps suchen</string>
+    <string name="subtitle_hint">Apps von Play-Store-Updates trennen</string>
+    <string name="subtitle_detached">Vom Play Store getrennt: %1$d</string>
+    <string name="snackbar_error">Fehler: %1$s</string>
+    <string name="snackbar_emptied">Trennliste geleert</string>
+    <string name="snackbar_detached">Getrennte Apps: %1$d</string>
+    <string name="no_apps">Keine Apps gefunden</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Todas</string>
+    <string name="section_user">Mías</string>
+    <string name="section_system">Sistema</string>
+    <string name="filter_detached">Desvinculadas</string>
+    <string name="filter_not_detached">No desvinculadas</string>
+    <string name="filter_updated_system">Sistema actualizadas</string>
+    <string name="filter_not_installed">No instaladas</string>
+    <string name="error_no_root">Se requiere acceso root</string>
+    <string name="error_no_module">El módulo zygisk-detach no está instalado</string>
+    <string name="not_installed">%1$s · no instalada</string>
+    <string name="action_detach">Desvincular</string>
+    <string name="action_clear">Borrar</string>
+    <string name="action_reload">Recargar</string>
+    <string name="search_hint">Buscar apps</string>
+    <string name="subtitle_hint">Desvincula apps de las actualizaciones de Play Store</string>
+    <string name="subtitle_detached">Desvinculadas de Play Store: %1$d</string>
+    <string name="snackbar_error">Error: %1$s</string>
+    <string name="snackbar_emptied">Lista de desvinculación vaciada</string>
+    <string name="snackbar_detached">Apps desvinculadas: %1$d</string>
+    <string name="no_apps">No se encontraron apps</string>
+</resources>
