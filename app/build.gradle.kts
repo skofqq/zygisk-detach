@@ -11,12 +11,24 @@ android {
         applicationId = "com.jhc.detach"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.4"
+        versionCode = 5
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+    signingConfigs {
+        // CI: provided through the SIGNING_* secrets; local builds fall back to the debug key
+        val keystore = System.getenv("SIGNING_KEYSTORE_FILE")
+        if (keystore != null) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
         }
     }
     buildTypes {
@@ -26,7 +38,7 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 
@@ -54,7 +66,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material3:material3:1.5.0-beta01")
     implementation("androidx.compose.material:material-icons-core")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")

@@ -1,6 +1,13 @@
 ## zygisk-detach-app
 
-Meant to be used with [zygisk-detach](https://github.com/j-hc/zygisk-detach) module
+Material 3 Expressive app for the [zygisk-detach](https://github.com/j-hc/zygisk-detach) Magisk module: pick the apps that Play Store should stop updating.
 
+Based on [j-hc/zygisk-detach-app](https://github.com/j-hc/zygisk-detach-app) (Apache-2.0).
 
-<img src="https://github.com/j-hc/revanced-magisk-module/assets/25510067/03a19b7f-fb19-4b21-abff-a6bea512359e" height="600" style="display: block; margin-left: auto; margin-right: auto">
+### Download
+
+Get the APK from [Releases](../../releases). Requires root and the zygisk-detach module.
+
+### Signing
+
+Release builds are signed with the key from the `SIGNING_KEYSTORE_BASE64`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS` and `SIGNING_KEY_PASSWORD` repository secrets. Without them CI falls back to a throwaway debug key, so updates between such builds need a reinstall.

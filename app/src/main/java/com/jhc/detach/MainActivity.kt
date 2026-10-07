@@ -1,334 +1,446 @@
 package com.jhc.detach
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.jhc.detach.ui.theme.ZygiskdetachTheme
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-@Composable
-fun AppsList(
-    packageManager: PackageManager,
-    renderedApps: MutableState<List<DetachedApp>>,
-    uninstalledAppBitmap: ImageBitmap,
-    contentPadding: PaddingValues = PaddingValues()
+private const val DETACH_BIN = "/data/adb/modules/zygisk-detach/detach"
+
+class DetachedApp(
+    val packageName: String,
+    val label: String,
+    detached: Boolean = false,
+    val installed: Boolean = true
 ) {
-
-    LazyColumn(contentPadding = contentPadding) {
-        items(renderedApps.value, key = { it.packageName }) { app ->
-            OutlinedCard(
-                modifier = Modifier.padding(3.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .height(85.dp)
-                        .padding(3.dp)
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .fillMaxHeight(0.6f)
-                            .padding(5.dp)
-                            .padding(PaddingValues(start = 5.dp, end = 10.dp)),
-                        bitmap =
-                            if (app.installed)
-                                try {
-                                    packageManager.getApplicationIcon(app.packageName)
-                                        .toBitmap()
-                                        .asImageBitmap()
-                                } catch (_: Exception) {
-                                    uninstalledAppBitmap
-                                } else uninstalledAppBitmap,
-                        contentDescription = ""
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = app.label, modifier = Modifier.wrapContentHeight())
-                            Text(
-                                maxLines = 1,
-                                text = app.packageName,
-                                fontSize = 14.sp,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .wrapContentHeight()
-                                    .alpha(0.8f)
-                            )
-                        }
-                        val checkedState = remember { mutableStateOf(app.detached) }
-                        Checkbox(
-                            checked = checkedState.value, onCheckedChange = {
-                                checkedState.value = it
-                                app.detached = it
-                            }, modifier = Modifier
-                                .wrapContentSize()
-                                .padding(
-                                    PaddingValues(end = 5.dp)
-                                )
-                        )
-                    }
-                }
-            }
-        }
-    }
+    var detached by mutableStateOf(detached)
 }
 
+private sealed interface LoadState {
+    data object Loading : LoadState
+    data class Failed(val message: String) : LoadState
+    data class Loaded(val apps: List<DetachedApp>) : LoadState
+}
 
-@Composable
-fun SearchBar(
-    detachedApps: MutableState<List<DetachedApp>>, renderedApps: MutableState<List<DetachedApp>>
-) {
-    var text by remember { mutableStateOf("") }
-    val f = LocalFocusManager.current
-    OutlinedTextField(
-        leadingIcon = {
-            Icon(
-                Icons.Filled.Search, ""
-            )
-        },
-        trailingIcon = {
-            Icon(
-                Icons.Filled.Close, "", modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = {
-                        text = ""
-                        renderedApps.value = detachedApps.value
-                        f.clearFocus()
-                    })
-            )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 5.dp, start = 10.dp, end = 10.dp, top = 5.dp),
-        value = text,
-        onValueChange = {
-            text = it
-            val searchText = it.lowercase()
-            if (it.isNotEmpty()) {
-                renderedApps.value = detachedApps.value.filter { app ->
-                    app.packageName.lowercase().contains(searchText) || app.label.lowercase()
-                        .contains(searchText)
-                }
-            }
-        },
-        label = { Text("Search") },
-        shape = RoundedCornerShape(12.dp)
+private class ShellResult(val ok: Boolean, val out: String, val err: String)
+
+private fun runShell(cmd: String): ShellResult {
+    val op = Shell.cmd(cmd).exec()
+    return ShellResult(op.code == 0, op.out.joinToString("\n"), op.err.joinToString("\n"))
+}
+
+private fun String.splitn() =
+    if (isEmpty()) emptyList()
+    else this.split('\n')
+
+private fun loadApps(packageManager: PackageManager): LoadState {
+    Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
+    if (!Shell.getShell().isRoot) return LoadState.Failed("Root access is required")
+    if (!runShell("test -f $DETACH_BIN").ok) {
+        return LoadState.Failed("The zygisk-detach module is not installed")
+    }
+
+    val apps = packageManager.getInstalledPackages(0).mapNotNull {
+        it.applicationInfo?.let { info ->
+            DetachedApp(it.packageName, packageManager.getApplicationLabel(info).toString())
+        }
+    }.toMutableList()
+    val list = runShell("$DETACH_BIN list")
+    val alDetach: List<String> = if (list.ok) {
+        list.out.splitn()
+    } else {
+        // corrupted detach.bin
+        runShell("$DETACH_BIN reset")
+        listOf()
+    }
+    for (d in alDetach) {
+        if (apps.none { it.packageName == d }) {
+            apps.add(DetachedApp(d, d, installed = false))
+        }
+    }
+    apps.forEach { it.detached = alDetach.contains(it.packageName) }
+    return LoadState.Loaded(apps.sortedBy { it.label.lowercase() }.sortedBy { !it.detached })
+}
+
+/** Shapes of a segmented list: large outer corners, small inner corners. */
+private fun segmentShape(index: Int, count: Int): RoundedCornerShape {
+    val outer = 24.dp
+    val inner = 6.dp
+    return RoundedCornerShape(
+        topStart = if (index == 0) outer else inner,
+        topEnd = if (index == 0) outer else inner,
+        bottomStart = if (index == count - 1) outer else inner,
+        bottomEnd = if (index == count - 1) outer else inner,
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AppsFilter(
-    detachedApps: MutableState<List<DetachedApp>>, renderedApps: MutableState<List<DetachedApp>>
+private fun AppRow(
+    app: DetachedApp,
+    shape: RoundedCornerShape,
+    icon: ImageBitmap,
 ) {
-    var filterIsDetached by remember { mutableStateOf(false) }
-    OutlinedCard(
-        border = BorderStroke(0.5.dp, if (filterIsDetached) Color.Cyan else Color.Gray),
-        modifier = Modifier.padding(start = 10.dp)
+    Surface(
+        shape = shape,
+        color = if (app.detached) MaterialTheme.colorScheme.secondaryContainer
+        else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = app.detached,
+                role = Role.Switch,
+                onValueChange = { app.detached = it }
+            )
     ) {
-        Box(
-            modifier = Modifier
-                .clip(RectangleShape)
-                .clickable(onClick = {
-                    filterIsDetached = !filterIsDetached
-                    if (filterIsDetached) {
-                        renderedApps.value = detachedApps.value.filter { app -> app.detached }
-                    } else {
-                        renderedApps.value = detachedApps.value
-                    }
-                }),
+        ListItem(
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            leadingContent = {
+                Image(
+                    bitmap = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(44.dp)
+                )
+            },
+            headlineContent = {
+                Text(
+                    app.label,
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            supportingContent = {
+                Text(
+                    if (app.installed) app.packageName else "${app.packageName} · not installed",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            trailingContent = {
+                Switch(
+                    checked = app.detached,
+                    onCheckedChange = null,
+                    thumbContent = if (app.detached) {
+                        {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize)
+                            )
+                        }
+                    } else null
+                )
+            }
+        )
+    }
+}
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun FilterButtons(onlyDetached: Boolean, detachedCount: Int, onChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+    ) {
+        ToggleButton(
+            checked = !onlyDetached,
+            onCheckedChange = { onChange(false) },
+            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+            modifier = Modifier.weight(1f)
         ) {
-            Text(
-                "Detached", modifier = Modifier.padding(10.dp), fontSize = 13.sp
+            Text("All apps")
+        }
+        ToggleButton(
+            checked = onlyDetached,
+            onCheckedChange = { onChange(true) },
+            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("Detached ($detachedCount)")
+        }
+    }
+}
+
+@Composable
+private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
+    val focusManager = LocalFocusManager.current
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text("Search apps") },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        trailingIcon = {
+            AnimatedVisibility(query.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+                IconButton(onClick = {
+                    onQueryChange("")
+                    focusManager.clearFocus()
+                }) {
+                    Icon(Icons.Filled.Close, contentDescription = "Clear")
+                }
+            }
+        },
+        singleLine = true,
+        shape = CircleShape,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageBitmap) {
+    var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
+    LaunchedEffect(Unit) {
+        state = withContext(Dispatchers.IO) {
+            try {
+                loadApps(packageManager)
+            } catch (e: Exception) {
+                LoadState.Failed(e.message ?: e.toString())
+            }
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val fabExpanded by remember { derivedStateOf { !listState.isScrollInProgress } }
+
+    val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
+    val detachedCount = apps.count { it.detached }
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeFlexibleTopAppBar(
+                title = { Text("zygisk-detach") },
+                subtitle = {
+                    Text(
+                        if (state is LoadState.Loaded) "$detachedCount detached from Play Store"
+                        else "Detach apps from Play Store updates"
+                    )
+                },
+                scrollBehavior = scrollBehavior
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            if (state is LoadState.Loaded) {
+                MediumExtendedFloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            val detached = apps.filter { it.detached }.map { it.packageName }
+                            val result = withContext(Dispatchers.IO) {
+                                if (detached.isEmpty()) runShell("$DETACH_BIN reset")
+                                else runShell("$DETACH_BIN detachall ${detached.joinToString(" ")}")
+                            }
+                            snackbarHostState.showSnackbar(
+                                when {
+                                    !result.ok -> "Error: ${result.err}"
+                                    detached.isEmpty() -> "Emptied the detach list"
+                                    else -> "Detached ${detached.size} apps"
+                                }
+                            )
+                        }
+                    },
+                    expanded = fabExpanded,
+                    icon = { Icon(Icons.Filled.Check, contentDescription = null) },
+                    text = { Text("Detach") }
+                )
+            }
+        }
+    ) { innerPadding ->
+        when (val s = state) {
+            LoadState.Loading -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                LoadingIndicator(modifier = Modifier.size(96.dp))
+            }
+
+            is LoadState.Failed -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    s.message,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            is LoadState.Loaded -> AppsList(
+                apps = s.apps,
+                listState = listState,
+                innerPadding = innerPadding,
+                packageManager = packageManager,
+                uninstalledIcon = uninstalledIcon,
+                detachedCount = detachedCount
             )
         }
     }
 }
 
-data class DetachedApp(
-    val packageName: String,
-    val label: String,
-    var detached: Boolean = false,
-    val installed: Boolean = true
-)
+@Composable
+private fun AppsList(
+    apps: List<DetachedApp>,
+    listState: LazyListState,
+    innerPadding: PaddingValues,
+    packageManager: PackageManager,
+    uninstalledIcon: ImageBitmap,
+    detachedCount: Int,
+) {
+    var query by remember { mutableStateOf("") }
+    var onlyDetached by remember { mutableStateOf(false) }
+    val iconCache = remember { HashMap<String, ImageBitmap>() }
 
-class Toaster(private val context: Context) {
-    fun toast(msg: String, delay: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, msg, delay).show()
+    val shown = apps.filter { app ->
+        (!onlyDetached || app.detached) && (query.isEmpty() ||
+                app.packageName.contains(query, ignoreCase = true) ||
+                app.label.contains(query, ignoreCase = true))
+    }
+
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding(),
+            // keep the last items scrollable above the gesture bar and the Detach button
+            bottom = innerPadding.calculateBottomPadding() + 104.dp,
+            start = 16.dp,
+            end = 16.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item(key = "header") {
+            Column {
+                SearchField(query) { query = it }
+                Spacer(Modifier.height(12.dp))
+                FilterButtons(onlyDetached, detachedCount) { onlyDetached = it }
+                Spacer(Modifier.height(14.dp))
+            }
+        }
+        if (shown.isEmpty()) {
+            item(key = "empty") {
+                Text(
+                    "No apps found",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(24.dp)
+                )
+            }
+        }
+        itemsIndexed(shown, key = { _, app -> app.packageName }) { index, app ->
+            val icon = iconCache.getOrPut(app.packageName) {
+                if (!app.installed) uninstalledIcon
+                else try {
+                    packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
+                } catch (_: Exception) {
+                    uninstalledIcon
+                }
+            }
+            AppRow(
+                app = app,
+                shape = segmentShape(index, shown.size),
+                icon = icon,
+            )
+        }
     }
 }
-
-fun runShell(cmd: String, toaster: Toaster): String {
-    val op = Shell.cmd(cmd).exec()
-    if (op.code != 0) {
-        toaster.toast("ERROR: " + op.err.joinToString("\n"), Toast.LENGTH_LONG)
-        return ""
-    } else {
-        return op.out.joinToString("\n")
-    }
-}
-
-fun String.splitn() =
-    if (isEmpty()) emptyList()
-    else this.split('\n')
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val toaster = Toaster(applicationContext)
-        Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
-        if (!Shell.getShell().isRoot) {
-            toaster.toast("Not root", Toast.LENGTH_SHORT)
-            finishAndRemoveTask()
-            return
-        }
-        if (Shell.cmd("test -f /data/adb/modules/zygisk-detach/detach").exec().code != 0) {
-            toaster.toast("zygisk-detach is not installed", Toast.LENGTH_SHORT)
-            finishAndRemoveTask()
-            return
-        }
-
-        val apps = packageManager.getInstalledPackages(0).mapNotNull {
-            it.applicationInfo?.let { info ->
-                DetachedApp(
-                    it.packageName, packageManager.getApplicationLabel(info).toString()
-                )
-            }
-        }.sortedBy { it.label }.toMutableList()
-        val alDetach: List<String> = try {
-            runShell("/data/adb/modules/zygisk-detach/detach list", toaster).splitn()
-        } catch (_: IndexOutOfBoundsException) {
-            runShell("/data/adb/modules/zygisk-detach/detach reset", toaster)
-            listOf()
-        }
-        for (d in alDetach) {
-            if (apps.find { it.packageName == d } == null) {
-                apps.add(DetachedApp(d, d, detached = true, installed = false))
-            }
-        }
-        apps.forEach { it.detached = alDetach.contains(it.packageName) }
-        val appsFinal = apps.sortedBy { it.label }.sortedBy { !it.detached }.toList()
+        val uninstalledIcon = getDrawable(R.mipmap.unistalled_app)!!.toBitmap().asImageBitmap()
         setContent {
-            val detachedApps = remember { mutableStateOf(appsFinal) }
-            val renderedApps = remember { mutableStateOf(appsFinal) }
             ZygiskdetachTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
-                ) {
-                    Scaffold(topBar = {}, floatingActionButton = {
-                        FloatingActionButton(onClick = {
-                            val detachedList = detachedApps.value.filter { app -> app.detached }
-                                .map { app -> app.packageName }
-                            if (detachedList.isEmpty()) {
-                                runShell("/data/adb/modules/zygisk-detach/detach reset", toaster)
-                                toaster.toast("Emptied the detach list")
-                            } else {
-                                val detachStr = detachedList.joinToString(" ")
-                                runShell("/data/adb/modules/zygisk-detach/detach detachall $detachStr", toaster)
-                                toaster.toast("Detached")
-                            }
-                        }, modifier = Modifier) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Filled.Check,
-                                    "Detach",
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                                Text("Detach", modifier = Modifier.padding(8.dp))
-                            }
-                        }
-                    }, content = { innerPadding ->
-                        // Keep the header below the status bar / display cutout. The list still
-                        // scrolls behind the navigation bar, but its last items can be scrolled
-                        // clear of both the navigation bar and the Detach button.
-                        val layoutDirection = LocalLayoutDirection.current
-                        Box(
-                            modifier = Modifier
-                                .padding(
-                                    top = innerPadding.calculateTopPadding(),
-                                    start = innerPadding.calculateStartPadding(layoutDirection),
-                                    end = innerPadding.calculateEndPadding(layoutDirection)
-                                )
-                                .padding(3.dp)
-                        ) {
-                            Column {
-                                SearchBar(detachedApps, renderedApps)
-                                AppsFilter(detachedApps, renderedApps)
-                                AppsList(
-                                    packageManager = packageManager,
-                                    renderedApps = renderedApps,
-                                    getDrawable(R.mipmap.unistalled_app)!!.toBitmap().asImageBitmap(),
-                                    contentPadding = PaddingValues(
-                                        bottom = innerPadding.calculateBottomPadding() + 88.dp
-                                    )
-                                )
-                            }
-                        }
-                    })
-                }
+                DetachScreen(packageManager, uninstalledIcon)
             }
         }
     }

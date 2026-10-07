@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Play Store bag with a "detach" badge. Also used as the monochrome (themed icon) layer. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.78"
+        android:scaleY="0.78"
+        android:translateX="6.81"
+        android:translateY="6.81">
+        <path
+            android:fillColor="@color/ic_launcher_foreground"
+            android:fillType="evenOdd"
+            android:pathData="M39,42 H69 A7,7 0 0 1 76,49 V61.5 A16.5,16.5 0 0 0 59.62,80 H39 A7,7 0 0 1 32,73 V49 A7,7 0 0 1 39,42 Z M47,52.5 V69.5 Q47,71.6 48.9,70.6 L62.4,62.6 Q64,61.5 62.4,60.4 L48.9,52.4 Q47,51.4 47,52.5 Z" />
+        <path
+            android:fillColor="@color/ic_launcher_foreground"
+            android:pathData="M41,42 V39 A13,9 0 0 1 67,39 V42 H62 V39.5 A8,5 0 0 0 46,39.5 V42 Z" />
+        <path
+            android:fillColor="@color/ic_launcher_foreground"
+            android:fillType="evenOdd"
+            android:pathData="M63,78 A13,13 0 1 1 89,78 A13,13 0 1 1 63,78 Z M76.00,80.40 L73.24,83.16 L70.84,80.76 L73.60,78.00 L70.84,75.24 L73.24,72.84 L76.00,75.60 L78.76,72.84 L81.16,75.24 L78.40,78.00 L81.16,80.76 L78.76,83.16 Z" />
+    </group>
+</vector>
