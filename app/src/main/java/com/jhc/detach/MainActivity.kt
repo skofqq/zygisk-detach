@@ -13,6 +13,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -318,7 +320,7 @@ private fun FilterChips(selected: Set<AppFilter>, onToggle: (AppFilter) -> Unit)
 private fun BottomBar(
     source: AppSource,
     onSourceChange: (AppSource) -> Unit,
-    detachedCount: Int,
+    pendingChanges: Int,
     onDetach: () -> Unit,
 ) {
     Row(
@@ -386,18 +388,23 @@ private fun BottomBar(
                 }
             }
         }
-        BadgedBox(
-            badge = {
-                if (detachedCount > 0) Badge { Text("$detachedCount") }
-            }
+        // only offered when there is something to apply
+        AnimatedVisibility(
+            visible = pendingChanges > 0,
+            enter = scaleIn(MaterialTheme.motionScheme.fastSpatialSpec()) + fadeIn(),
+            exit = scaleOut(MaterialTheme.motionScheme.fastSpatialSpec()) + fadeOut()
         ) {
-            FloatingActionButton(
-                onClick = onDetach,
-                shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(64.dp)
+            BadgedBox(
+                badge = { Badge { Text("$pendingChanges") } }
             ) {
-                Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_detach))
+                FloatingActionButton(
+                    onClick = onDetach,
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_detach))
+                }
             }
         }
     }
@@ -457,7 +464,6 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
     var source by remember { mutableStateOf(AppSource.ALL) }
 
     val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
-    val detachedCount = apps.count { it.detached }
     // what the module actually has detached; pending switch changes don't count until applied
     var applied by remember { mutableStateOf(emptySet<String>()) }
     LaunchedEffect(state) {
@@ -491,7 +497,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 BottomBar(
                     source = source,
                     onSourceChange = { source = it },
-                    detachedCount = detachedCount,
+                    pendingChanges = apps.count { it.detached != (it.packageName in applied) },
                     onDetach = {
                         scope.launch {
                             val detached = apps.filter { it.detached }.map { it.packageName }
