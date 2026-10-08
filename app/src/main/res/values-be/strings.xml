@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Усе</string>
+    <string name="section_user">Мае</string>
+    <string name="section_system">Сістэмныя</string>
+    <string name="filter_detached">Адвязаныя</string>
+    <string name="filter_not_detached">Не адвязаныя</string>
+    <string name="filter_updated_system">Абноўленыя сістэмныя</string>
+    <string name="filter_not_installed">Не ўсталяваныя</string>
+    <string name="error_no_root">Патрэбны root-доступ</string>
+    <string name="error_no_module">Модуль zygisk-detach не ўсталяваны</string>
+    <string name="not_installed">%1$s · не ўсталявана</string>
+    <string name="action_detach">Адвязаць</string>
+    <string name="action_clear">Ачысціць</string>
+    <string name="action_reload">Абнавіць</string>
+    <string name="search_hint">Пошук праграм</string>
+    <string name="subtitle_hint">Адвяжыце праграмы ад абнаўленняў Play Store</string>
+    <string name="subtitle_detached">Адвязана ад Play Store: %1$d</string>
+    <string name="snackbar_error">Памылка: %1$s</string>
+    <string name="snackbar_emptied">Спіс адвязкі ачышчаны</string>
+    <string name="snackbar_detached">Адвязана праграм: %1$d</string>
+    <string name="no_apps">Праграмы не знойдзены</string>
+    <string name="group_detached">Адвязаныя</string>
+    <string name="group_other">Астатнія</string>
+</resources>

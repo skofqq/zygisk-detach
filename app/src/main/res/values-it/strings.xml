@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_all">Tutte</string>
+    <string name="section_user">Mie</string>
+    <string name="section_system">Sistema</string>
+    <string name="filter_detached">Scollegate</string>
+    <string name="filter_not_detached">Non scollegate</string>
+    <string name="filter_updated_system">Di sistema aggiornate</string>
+    <string name="filter_not_installed">Non installate</string>
+    <string name="error_no_root">È richiesto l\'accesso root</string>
+    <string name="error_no_module">Il modulo zygisk-detach non è installato</string>
+    <string name="not_installed">%1$s · non installata</string>
+    <string name="action_detach">Scollega</string>
+    <string name="action_clear">Cancella</string>
+    <string name="action_reload">Ricarica</string>
+    <string name="search_hint">Cerca app</string>
+    <string name="subtitle_hint">Scollega le app dagli aggiornamenti del Play Store</string>
+    <string name="subtitle_detached">Scollegate dal Play Store: %1$d</string>
+    <string name="snackbar_error">Errore: %1$s</string>
+    <string name="snackbar_emptied">Elenco di scollegamento svuotato</string>
+    <string name="snackbar_detached">App scollegate: %1$d</string>
+    <string name="no_apps">Nessuna app trovata</string>
+    <string name="group_detached">Scollegate</string>
+    <string name="group_other">Altre app</string>
+</resources>
