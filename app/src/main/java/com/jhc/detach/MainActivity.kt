@@ -5,12 +5,15 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -110,6 +113,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.jhc.detach.ui.theme.AppTheme
 import com.jhc.detach.ui.theme.ZygiskdetachTheme
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -663,6 +667,21 @@ class MainActivity : ComponentActivity() {
             }
             ZygiskdetachTheme(darkTheme = dark) {
                 var showSettings by rememberSaveable { mutableStateOf(false) }
+                // predictive back: the settings page shrinks toward the swipe and reveals the list
+                val backProgress = remember { Animatable(0f) }
+                var swipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
+                LaunchedEffect(showSettings) { if (showSettings) backProgress.snapTo(0f) }
+                PredictiveBackHandler(enabled = showSettings) { events ->
+                    try {
+                        events.collect { event ->
+                            swipeEdge = event.swipeEdge
+                            backProgress.snapTo(event.progress)
+                        }
+                        showSettings = false
+                    } catch (_: CancellationException) {
+                        backProgress.animateTo(0f)
+                    }
+                }
                 // settings slide over the main screen so its state (pending switches) survives
                 Box {
                     DetachScreen(packageManager, uninstalledIcon, onOpenSettings = { showSettings = true })
@@ -671,7 +690,20 @@ class MainActivity : ComponentActivity() {
                         enter = slideInHorizontally { it } + fadeIn(),
                         exit = slideOutHorizontally { it } + fadeOut()
                     ) {
-                        Surface(color = MaterialTheme.colorScheme.background) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.background,
+                            modifier = Modifier.graphicsLayer {
+                                val progress = backProgress.value
+                                val scale = 1f - 0.1f * progress
+                                scaleX = scale
+                                scaleY = scale
+                                // drift away from the edge the swipe started at, by up to 8% of the width
+                                val direction = if (swipeEdge == BackEventCompat.EDGE_RIGHT) -1 else 1
+                                translationX = direction * progress * size.width * 0.08f
+                                shape = RoundedCornerShape(32.dp * progress)
+                                clip = progress > 0f
+                            }
+                        ) {
                             SettingsScreen(onBack = { showSettings = false })
                         }
                     }
