@@ -2,4 +2,11 @@
 <resources>
 
     <style name="Theme.Zygiskdetach" parent="android:Theme.Material.NoActionBar" />
+
+    <style name="Theme.Zygiskdetach.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_splash</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <item name="postSplashScreenTheme">@style/Theme.Zygiskdetach</item>
+    </style>
 </resources>

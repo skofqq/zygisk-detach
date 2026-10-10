@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
@@ -17,6 +18,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -84,6 +87,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,6 +106,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.jhc.detach.ui.theme.AppTheme
 import com.jhc.detach.ui.theme.ZygiskdetachTheme
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -160,9 +166,6 @@ private fun String.splitn() =
     else this.split('\n')
 
 private fun loadApps(packageManager: PackageManager): LoadState {
-    if (Shell.getCachedShell() == null) {
-        Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
-    }
     if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
     if (!runShell("test -f $DETACH_BIN").ok) {
         return LoadState.Failed(R.string.error_no_module)
@@ -196,7 +199,7 @@ private fun loadApps(packageManager: PackageManager): LoadState {
 }
 
 /** Shapes of a segmented list: large outer corners, small inner corners. */
-private fun segmentShape(index: Int, count: Int): RoundedCornerShape {
+internal fun segmentShape(index: Int, count: Int): RoundedCornerShape {
     val outer = 24.dp
     val inner = 6.dp
     return RoundedCornerShape(
@@ -443,7 +446,11 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageBitmap) {
+private fun DetachScreen(
+    packageManager: PackageManager,
+    uninstalledIcon: ImageBitmap,
+    onOpenSettings: () -> Unit,
+) {
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(reloadKey) {
@@ -477,7 +484,7 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text("zygisk-detach") },
+                title = { Text(stringResource(R.string.app_name)) },
                 subtitle = {
                     Text(
                         if (state is LoadState.Loaded) stringResource(R.string.subtitle_detached, applied.size)
@@ -487,6 +494,9 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
                 actions = {
                     IconButton(onClick = { reloadKey++ }) {
                         Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_reload))
+                    }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -521,10 +531,9 @@ private fun DetachScreen(packageManager: PackageManager, uninstalledIcon: ImageB
         }
     ) { innerPadding ->
         when (val s = state) {
+            // centered on the whole window, where the splash icon was
             LoadState.Loading -> Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 LoadingIndicator(modifier = Modifier.size(96.dp))
@@ -620,15 +629,53 @@ private fun AppsList(
     }
 }
 
+// the scrims enableEdgeToEdge() uses by default for 3-button navigation
+private val LightScrim = android.graphics.Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+private val DarkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
+
 class MainActivity : ComponentActivity() {
+    companion object {
+        init {
+            Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+        // ask for root in the background while the splash plays; loadApps() then reuses the shell
+        Shell.getShell { }
+        AppTheme.init(this)
+        Updater.cleanUp(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val uninstalledIcon = getDrawable(R.mipmap.unistalled_app)!!.toBitmap().asImageBitmap()
         setContent {
-            ZygiskdetachTheme {
-                DetachScreen(packageManager, uninstalledIcon)
+            // keep status/navigation bar icons readable when the app theme differs from the system one
+            val dark = AppTheme.isDark()
+            LaunchedEffect(dark) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
+                    ) { dark },
+                    navigationBarStyle = SystemBarStyle.auto(LightScrim, DarkScrim) { dark }
+                )
+            }
+            ZygiskdetachTheme(darkTheme = dark) {
+                var showSettings by rememberSaveable { mutableStateOf(false) }
+                // settings slide over the main screen so its state (pending switches) survives
+                Box {
+                    DetachScreen(packageManager, uninstalledIcon, onOpenSettings = { showSettings = true })
+                    AnimatedVisibility(
+                        visible = showSettings,
+                        enter = slideInHorizontally { it } + fadeIn(),
+                        exit = slideOutHorizontally { it } + fadeOut()
+                    ) {
+                        Surface(color = MaterialTheme.colorScheme.background) {
+                            SettingsScreen(onBack = { showSettings = false })
+                        }
+                    }
+                }
             }
         }
     }

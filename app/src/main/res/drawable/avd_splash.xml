@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon: the Play triangle pops in whole, then splits apart ("detaches"). -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="108dp"
+            android:height="108dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+            <group
+                android:name="root"
+                android:pivotX="54"
+                android:pivotY="54"
+                android:scaleX="0.5"
+                android:scaleY="0.5"
+                android:translateX="-2.2">
+                <group
+                    android:name="top"
+                    android:translateX="2"
+                    android:translateY="3">
+                    <path
+                        android:fillColor="@color/splash_icon"
+                        android:pathData="M36.00,28.00 L36.00,54.86 L67.20,45.94 Z"
+                        android:strokeColor="@color/splash_icon"
+                        android:strokeLineJoin="round"
+                        android:strokeWidth="7" />
+                </group>
+                <group
+                    android:name="bottom"
+                    android:translateX="-3"
+                    android:translateY="-3">
+                    <path
+                        android:fillColor="@color/splash_icon"
+                        android:pathData="M41.00,63.86 L41.00,80.00 L81.00,57.00 L75.69,53.95 Z"
+                        android:strokeColor="@color/splash_icon"
+                        android:strokeLineJoin="round"
+                        android:strokeWidth="7" />
+                </group>
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="root">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="250"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.5"
+                    android:valueTo="0.88" />
+                <objectAnimator
+                    android:duration="250"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.5"
+                    android:valueTo="0.88" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="top">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="translateX"
+                    android:startOffset="200"
+                    android:valueFrom="2"
+                    android:valueTo="0" />
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="translateY"
+                    android:startOffset="200"
+                    android:valueFrom="3"
+                    android:valueTo="0" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="bottom">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="translateX"
+                    android:startOffset="200"
+                    android:valueFrom="-3"
+                    android:valueTo="0" />
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:propertyName="translateY"
+                    android:startOffset="200"
+                    android:valueFrom="-3"
+                    android:valueTo="0" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

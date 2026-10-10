@@ -12,8 +12,8 @@ android {
         applicationId = "com.jhc.detach"
         minSdk = 24
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 6
+        versionName = "1.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,6 +65,7 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:core:5.2.2")
 
     implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation(platform("androidx.compose:compose-bom:2026.06.01"))

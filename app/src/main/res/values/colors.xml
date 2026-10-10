@@ -2,4 +2,7 @@
 <resources>
     <color name="ic_launcher_background">#D3E3FD</color>
     <color name="ic_launcher_foreground">#0B57D0</color>
+    <!-- splash screen follows the system theme (values-night overrides these two) -->
+    <color name="splash_background">#F8F9FF</color>
+    <color name="splash_icon">#0B57D0</color>
 </resources>
