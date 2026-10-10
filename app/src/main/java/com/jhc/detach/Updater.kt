@@ -33,6 +33,7 @@ sealed interface UpdateState {
  * Lives outside the settings screen so a download keeps going when the screen is closed.
  */
 object Updater {
+    private const val REPO_URL = "https://github.com/skofqq/zygisk-detach"
     private const val LATEST_RELEASE =
         "https://api.github.com/repos/skofqq/zygisk-detach/releases/latest"
     private const val INSTALL_APK = "/data/local/tmp/zygisk-detach-update.apk"
@@ -57,18 +58,9 @@ object Updater {
         job = scope.launch {
             state = UpdateState.Checking
             state = try {
-                val release = JSONObject(get(LATEST_RELEASE))
-                val version = release.getString("tag_name").removePrefix("v")
-                val assets = release.getJSONArray("assets")
-                val apk = (0 until assets.length()).map { assets.getJSONObject(it) }
-                    .firstOrNull { it.getString("name").endsWith(".apk") }
-                when {
-                    !isNewer(version, currentVersion) -> UpdateState.UpToDate
-                    apk == null -> UpdateState.Failed("no APK in release v$version")
-                    else -> UpdateState.Available(
-                        version, apk.getString("browser_download_url"), apk.optLong("size")
-                    )
-                }
+                val (version, apkUrl, size) = latestRelease()
+                if (isNewer(version, currentVersion)) UpdateState.Available(version, apkUrl, size)
+                else UpdateState.UpToDate
             } catch (e: Exception) {
                 UpdateState.Failed(e.message ?: e.javaClass.simpleName)
             }
@@ -94,6 +86,47 @@ object Updater {
         }
     }
 
+    private data class Release(val version: String, val apkUrl: String, val size: Long)
+
+    private fun latestRelease(): Release = try {
+        val release = JSONObject(get(LATEST_RELEASE))
+        val version = release.getString("tag_name").removePrefix("v")
+        val assets = release.getJSONArray("assets")
+        val apk = (0 until assets.length()).map { assets.getJSONObject(it) }
+            .firstOrNull { it.getString("name").endsWith(".apk") }
+            ?: error("no APK in release v$version")
+        Release(version, apk.getString("browser_download_url"), apk.optLong("size"))
+    } catch (_: RateLimited) {
+        latestReleaseFromRedirect()
+    }
+
+    /**
+     * The API allows 60 requests an hour per IP, shared with Obtainium and anything else on the
+     * network. /releases/latest on the website has no such limit: it redirects to the tag page,
+     * and CI names the APK after the tag.
+     */
+    private fun latestReleaseFromRedirect(): Release {
+        val conn = URL("$REPO_URL/releases/latest").openConnection() as HttpURLConnection
+        try {
+            conn.instanceFollowRedirects = false
+            conn.setRequestProperty("User-Agent", "zygisk-detach-app")
+            conn.connectTimeout = 15_000
+            conn.readTimeout = 15_000
+            val location = conn.getHeaderField("Location")
+            val tag = location?.substringAfter("/releases/tag/", "")?.takeIf { it.isNotEmpty() }
+                ?: error("GitHub HTTP ${conn.responseCode}")
+            return Release(
+                tag.removePrefix("v"),
+                "$REPO_URL/releases/download/$tag/zygisk-detach-app-$tag.apk",
+                0
+            )
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    private class RateLimited : Exception()
+
     private fun get(url: String): String {
         val conn = URL(url).openConnection() as HttpURLConnection
         try {
@@ -101,8 +134,10 @@ object Updater {
             conn.setRequestProperty("User-Agent", "zygisk-detach-app")
             conn.connectTimeout = 15_000
             conn.readTimeout = 15_000
-            if (conn.responseCode != HttpURLConnection.HTTP_OK) {
-                error("GitHub HTTP ${conn.responseCode}")
+            when (conn.responseCode) {
+                HttpURLConnection.HTTP_OK -> {}
+                HttpURLConnection.HTTP_FORBIDDEN, 429 -> throw RateLimited()
+                else -> error("GitHub HTTP ${conn.responseCode}")
             }
             return conn.inputStream.bufferedReader().use { it.readText() }
         } finally {
