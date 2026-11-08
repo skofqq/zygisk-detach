@@ -13,6 +13,8 @@ Based on [j-hc/zygisk-detach-app](https://github.com/j-hc/zygisk-detach-app) by 
 - Renamed to Zygisk Detach; new vector adaptive launcher icon (split Play triangle) with themed icon support
 - Animated splash screen
 - Settings: light / dark / system theme, Material You colors toggle, built-in updater (checks GitHub releases, downloads and installs the APK through root, then deletes it), one-tap Add to Obtainium
+- Work profile (and private space) apps are listed with a badge, no second install needed
+- Predictive back gesture in settings
 - Translations: ru, uk, be, kk, de, es, it
 - GitHub Actions builds and releases
 

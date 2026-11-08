@@ -48,4 +48,5 @@
     <string name="update_installing">Усталёўваю %1$s, праграма перазапусціцца</string>
     <string name="update_failed">Памылка абнаўлення: %1$s</string>
     <string name="update_signature">Гэта копія падпісана іншым ключом. Націсніце, каб адкрыць рэліз, і пераўсталюйце праграму ўручную</string>
+    <string name="other_profile">%1$s · працоўны профіль</string>
 </resources>

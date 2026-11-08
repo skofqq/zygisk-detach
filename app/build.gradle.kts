@@ -12,8 +12,8 @@ android {
         applicationId = "com.jhc.detach"
         minSdk = 24
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.6.2"
+        versionCode = 9
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

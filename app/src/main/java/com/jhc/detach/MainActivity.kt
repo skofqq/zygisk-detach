@@ -4,6 +4,8 @@ package com.jhc.detach
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Process
+import android.os.UserManager
 import androidx.activity.ComponentActivity
 import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
@@ -127,6 +129,8 @@ class DetachedApp(
     val installed: Boolean = true,
     val system: Boolean = false,
     val updatedSystem: Boolean = false,
+    /** Installed only in another profile (work, private space): its icon, already badged. */
+    val profileIcon: ImageBitmap? = null,
 ) {
     var detached by mutableStateOf(detached)
 }
@@ -169,7 +173,37 @@ private fun String.splitn() =
     if (isEmpty()) emptyList()
     else this.split('\n')
 
-private fun loadApps(packageManager: PackageManager): LoadState {
+/**
+ * Apps installed only in the work profile (or private space) are invisible to getInstalledPackages,
+ * which covers just our own user. Root lists them with their APK paths, and the label and icon are
+ * read from the APK itself. The detach list is by package name, so one entry covers every profile.
+ */
+private fun otherProfileApps(
+    packageManager: PackageManager,
+    userManager: UserManager,
+    known: MutableSet<String>,
+): List<DetachedApp> = userManager.userProfiles
+    .filter { it != Process.myUserHandle() }
+    .flatMap { profile ->
+        // UserHandle.hashCode() is the user id
+        runShell("pm list packages -f -3 --user ${profile.hashCode()}").out.splitn().mapNotNull { line ->
+            val apk = line.removePrefix("package:").substringBeforeLast('=')
+            val packageName = line.substringAfterLast('=')
+            if (!line.startsWith("package:") || !known.add(packageName)) return@mapNotNull null
+            val info = packageManager.getPackageArchiveInfo(apk, 0)?.applicationInfo?.apply {
+                sourceDir = apk
+                publicSourceDir = apk
+            }
+            val icon = info?.loadIcon(packageManager) ?: packageManager.defaultActivityIcon
+            DetachedApp(
+                packageName,
+                info?.loadLabel(packageManager)?.toString() ?: packageName,
+                profileIcon = packageManager.getUserBadgedIcon(icon, profile).toBitmap().asImageBitmap(),
+            )
+        }
+    }
+
+private fun loadApps(packageManager: PackageManager, userManager: UserManager): LoadState {
     if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
     if (!runShell("test -f $DETACH_BIN").ok) {
         return LoadState.Failed(R.string.error_no_module)
@@ -185,6 +219,7 @@ private fun loadApps(packageManager: PackageManager): LoadState {
             )
         }
     }.toMutableList()
+    apps += otherProfileApps(packageManager, userManager, apps.mapTo(HashSet()) { it.packageName })
     val list = runShell("$DETACH_BIN list")
     val alDetach: List<String> = if (list.ok) {
         list.out.splitn()
@@ -274,8 +309,11 @@ private fun AppRow(
             },
             supportingContent = {
                 Text(
-                    if (app.installed) app.packageName
-                    else stringResource(R.string.not_installed, app.packageName),
+                    when {
+                        !app.installed -> stringResource(R.string.not_installed, app.packageName)
+                        app.profileIcon != null -> stringResource(R.string.other_profile, app.packageName)
+                        else -> app.packageName
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -455,13 +493,14 @@ private fun DetachScreen(
     uninstalledIcon: ImageBitmap,
     onOpenSettings: () -> Unit,
 ) {
+    val userManager = LocalContext.current.getSystemService(UserManager::class.java)
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(reloadKey) {
         state = LoadState.Loading
         state = withContext(Dispatchers.IO) {
             try {
-                loadApps(packageManager)
+                loadApps(packageManager, userManager)
             } catch (e: Exception) {
                 LoadState.Failed(message = e.message ?: e.toString())
             }
@@ -732,7 +771,7 @@ private fun LazyListScope.appGroup(
         }
     }
     itemsIndexed(group, key = { _, app -> app.packageName }) { index, app ->
-        val icon = iconCache.getOrPut(app.packageName) {
+        val icon = app.profileIcon ?: iconCache.getOrPut(app.packageName) {
             if (!app.installed) uninstalledIcon
             else try {
                 packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()

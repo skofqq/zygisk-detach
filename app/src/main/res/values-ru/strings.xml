@@ -48,4 +48,5 @@
     <string name="update_installing">Устанавливаю %1$s, приложение перезапустится</string>
     <string name="update_failed">Ошибка обновления: %1$s</string>
     <string name="update_signature">Эта копия подписана другим ключом. Нажмите, чтобы открыть релиз, и переустановите приложение вручную</string>
+    <string name="other_profile">%1$s · рабочий профиль</string>
 </resources>
