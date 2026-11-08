@@ -4,13 +4,18 @@ package com.jhc.detach
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Process
+import android.os.UserManager
 import androidx.activity.ComponentActivity
+import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -110,6 +115,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.jhc.detach.ui.theme.AppTheme
 import com.jhc.detach.ui.theme.ZygiskdetachTheme
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -123,8 +129,13 @@ class DetachedApp(
     val installed: Boolean = true,
     val system: Boolean = false,
     val updatedSystem: Boolean = false,
+    /** Installed only in another profile (work, private space): its icon, already badged. */
+    val profileIcon: ImageBitmap? = null,
 ) {
     var detached by mutableStateOf(detached)
+
+    /** Installed in the work profile or private space (possibly in ours too). */
+    var otherProfile = false
 }
 
 /** Main sections, switched from the bottom bar. */
@@ -140,12 +151,20 @@ private enum class AppSource(@StringRes val label: Int, val icon: ImageVector) {
     }
 }
 
-/** Extra filters, toggled with chips above the list. */
-private enum class AppFilter(@StringRes val label: Int, val matches: (DetachedApp) -> Boolean) {
-    DETACHED(R.string.filter_detached, { it.detached }),
-    NOT_DETACHED(R.string.filter_not_detached, { !it.detached }),
-    UPDATED_SYSTEM(R.string.filter_updated_system, { it.updatedSystem }),
-    NOT_INSTALLED(R.string.filter_not_installed, { !it.installed }),
+/**
+ * Extra filters, toggled with chips above the list. Filters combine with AND, so chips of the same
+ * group would always give an empty list: picking one drops the other ones of its group.
+ */
+private enum class AppFilter(
+    @StringRes val label: Int,
+    val group: Int,
+    val matches: (DetachedApp) -> Boolean,
+) {
+    DETACHED(R.string.filter_detached, 0, { it.detached }),
+    NOT_DETACHED(R.string.filter_not_detached, 0, { !it.detached }),
+    UPDATED_SYSTEM(R.string.filter_updated_system, 1, { it.updatedSystem }),
+    NOT_INSTALLED(R.string.filter_not_installed, 1, { !it.installed }),
+    WORK_PROFILE(R.string.filter_work_profile, 1, { it.otherProfile }),
 }
 
 private sealed interface LoadState {
@@ -165,7 +184,47 @@ private fun String.splitn() =
     if (isEmpty()) emptyList()
     else this.split('\n')
 
-private fun loadApps(packageManager: PackageManager): LoadState {
+/**
+ * Apps installed only in the work profile (or private space) are invisible to getInstalledPackages,
+ * which covers just our own user. Root lists them with their APK paths, and the label and icon are
+ * read from the APK itself. The detach list is by package name, so one entry covers every profile.
+ */
+private fun addOtherProfileApps(
+    packageManager: PackageManager,
+    userManager: UserManager,
+    apps: MutableList<DetachedApp>,
+) {
+    val byName = apps.associateBy { it.packageName }.toMutableMap()
+    for (profile in userManager.userProfiles) {
+        if (profile == Process.myUserHandle()) continue
+        // UserHandle.hashCode() is the user id
+        for (line in runShell("pm list packages -f -3 --user ${profile.hashCode()}").out.splitn()) {
+            if (!line.startsWith("package:")) continue
+            val apk = line.removePrefix("package:").substringBeforeLast('=')
+            val packageName = line.substringAfterLast('=')
+            val existing = byName[packageName]
+            if (existing != null) {
+                existing.otherProfile = true
+                continue
+            }
+            val info = packageManager.getPackageArchiveInfo(apk, 0)?.applicationInfo?.apply {
+                sourceDir = apk
+                publicSourceDir = apk
+            }
+            val icon = info?.loadIcon(packageManager) ?: packageManager.defaultActivityIcon
+            val app = DetachedApp(
+                packageName,
+                info?.loadLabel(packageManager)?.toString() ?: packageName,
+                profileIcon = packageManager.getUserBadgedIcon(icon, profile).toBitmap().asImageBitmap(),
+            )
+            app.otherProfile = true
+            apps += app
+            byName[packageName] = app
+        }
+    }
+}
+
+private fun loadApps(packageManager: PackageManager, userManager: UserManager): LoadState {
     if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
     if (!runShell("test -f $DETACH_BIN").ok) {
         return LoadState.Failed(R.string.error_no_module)
@@ -181,6 +240,7 @@ private fun loadApps(packageManager: PackageManager): LoadState {
             )
         }
     }.toMutableList()
+    addOtherProfileApps(packageManager, userManager, apps)
     val list = runShell("$DETACH_BIN list")
     val alDetach: List<String> = if (list.ok) {
         list.out.splitn()
@@ -269,12 +329,40 @@ private fun AppRow(
                 )
             },
             supportingContent = {
-                Text(
-                    if (app.installed) app.packageName
-                    else stringResource(R.string.not_installed, app.packageName),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // the work label goes first so a long package name can't push it out of view
+                // aligned by baseline: ListItem treats differing first and last baselines as
+                // multi-line supporting text and grows to the three-line height
+                Row {
+                    if (app.otherProfile) {
+                        val onlyThere = app.profileIcon != null
+                        Surface(
+                            shape = CircleShape,
+                            color = if (onlyThere) MaterialTheme.colorScheme.tertiaryContainer
+                            else MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = if (onlyThere) MaterialTheme.colorScheme.onTertiaryContainer
+                            else MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .padding(end = 6.dp)
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (onlyThere) R.string.filter_work_profile else R.string.both_profiles
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        if (app.installed) app.packageName
+                        else stringResource(R.string.not_installed, app.packageName),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.alignByBaseline()
+                    )
+                }
             },
             trailingContent = {
                 Switch(
@@ -451,13 +539,14 @@ private fun DetachScreen(
     uninstalledIcon: ImageBitmap,
     onOpenSettings: () -> Unit,
 ) {
+    val userManager = LocalContext.current.getSystemService(UserManager::class.java)
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(reloadKey) {
         state = LoadState.Loading
         state = withContext(Dispatchers.IO) {
             try {
-                loadApps(packageManager)
+                loadApps(packageManager, userManager)
             } catch (e: Exception) {
                 LoadState.Failed(message = e.message ?: e.toString())
             }
@@ -606,7 +695,8 @@ private fun AppsList(
                 SearchField(query) { query = it }
                 Spacer(Modifier.height(8.dp))
                 FilterChips(filters) { f ->
-                    filters = if (f in filters) filters - f else filters + f
+                    filters = if (f in filters) filters - f
+                    else filters.filterTo(HashSet()) { it.group != f.group } + f
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -663,6 +753,21 @@ class MainActivity : ComponentActivity() {
             }
             ZygiskdetachTheme(darkTheme = dark) {
                 var showSettings by rememberSaveable { mutableStateOf(false) }
+                // predictive back: the settings page shrinks toward the swipe and reveals the list
+                val backProgress = remember { Animatable(0f) }
+                var swipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
+                LaunchedEffect(showSettings) { if (showSettings) backProgress.snapTo(0f) }
+                PredictiveBackHandler(enabled = showSettings) { events ->
+                    try {
+                        events.collect { event ->
+                            swipeEdge = event.swipeEdge
+                            backProgress.snapTo(event.progress)
+                        }
+                        showSettings = false
+                    } catch (_: CancellationException) {
+                        backProgress.animateTo(0f)
+                    }
+                }
                 // settings slide over the main screen so its state (pending switches) survives
                 Box {
                     DetachScreen(packageManager, uninstalledIcon, onOpenSettings = { showSettings = true })
@@ -671,7 +776,20 @@ class MainActivity : ComponentActivity() {
                         enter = slideInHorizontally { it } + fadeIn(),
                         exit = slideOutHorizontally { it } + fadeOut()
                     ) {
-                        Surface(color = MaterialTheme.colorScheme.background) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.background,
+                            modifier = Modifier.graphicsLayer {
+                                val progress = backProgress.value
+                                val scale = 1f - 0.1f * progress
+                                scaleX = scale
+                                scaleY = scale
+                                // drift away from the edge the swipe started at, by up to 8% of the width
+                                val direction = if (swipeEdge == BackEventCompat.EDGE_RIGHT) -1 else 1
+                                translationX = direction * progress * size.width * 0.08f
+                                shape = RoundedCornerShape(32.dp * progress)
+                                clip = progress > 0f
+                            }
+                        ) {
                             SettingsScreen(onBack = { showSettings = false })
                         }
                     }
@@ -700,7 +818,7 @@ private fun LazyListScope.appGroup(
         }
     }
     itemsIndexed(group, key = { _, app -> app.packageName }) { index, app ->
-        val icon = iconCache.getOrPut(app.packageName) {
+        val icon = app.profileIcon ?: iconCache.getOrPut(app.packageName) {
             if (!app.installed) uninstalledIcon
             else try {
                 packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()

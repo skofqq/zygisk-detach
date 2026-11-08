@@ -48,4 +48,6 @@
     <string name="update_installing">Installazione di %1$s, l\'app si riavvierà</string>
     <string name="update_failed">Aggiornamento non riuscito: %1$s</string>
     <string name="update_signature">Questa copia è firmata con un\'altra chiave. Tocca per aprire la release e reinstalla l\'app manualmente</string>
+    <string name="filter_work_profile">Profilo di lavoro</string>
+    <string name="both_profiles">Entrambi i profili</string>
 </resources>

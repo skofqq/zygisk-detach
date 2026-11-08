@@ -48,4 +48,6 @@
     <string name="update_installing">%1$s орнатылуда, қолданба қайта іске қосылады</string>
     <string name="update_failed">Жаңарту қатесі: %1$s</string>
     <string name="update_signature">Бұл көшірме басқа кілтпен қол қойылған. Шығарылымды ашу үшін түртіп, қолданбаны қолмен қайта орнатыңыз</string>
+    <string name="filter_work_profile">Жұмыс профилі</string>
+    <string name="both_profiles">Екі профильде</string>
 </resources>
