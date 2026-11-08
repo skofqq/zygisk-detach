@@ -330,7 +330,9 @@ private fun AppRow(
             },
             supportingContent = {
                 // the work label goes first so a long package name can't push it out of view
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // aligned by baseline: ListItem treats differing first and last baselines as
+                // multi-line supporting text and grows to the three-line height
+                Row {
                     if (app.otherProfile) {
                         val onlyThere = app.profileIcon != null
                         Surface(
@@ -339,10 +341,10 @@ private fun AppRow(
                             else MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = if (onlyThere) MaterialTheme.colorScheme.onTertiaryContainer
                             else MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(end = 6.dp)
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .padding(end = 6.dp)
                         ) {
-                            // no vertical padding: a pill taller than one text line makes ListItem
-                            // switch to the three-line height
                             Text(
                                 stringResource(
                                     if (onlyThere) R.string.filter_work_profile else R.string.both_profiles
@@ -357,7 +359,8 @@ private fun AppRow(
                         if (app.installed) app.packageName
                         else stringResource(R.string.not_installed, app.packageName),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.alignByBaseline()
                     )
                 }
             },
