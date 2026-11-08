@@ -151,13 +151,20 @@ private enum class AppSource(@StringRes val label: Int, val icon: ImageVector) {
     }
 }
 
-/** Extra filters, toggled with chips above the list. */
-private enum class AppFilter(@StringRes val label: Int, val matches: (DetachedApp) -> Boolean) {
-    DETACHED(R.string.filter_detached, { it.detached }),
-    NOT_DETACHED(R.string.filter_not_detached, { !it.detached }),
-    UPDATED_SYSTEM(R.string.filter_updated_system, { it.updatedSystem }),
-    NOT_INSTALLED(R.string.filter_not_installed, { !it.installed }),
-    WORK_PROFILE(R.string.filter_work_profile, { it.otherProfile }),
+/**
+ * Extra filters, toggled with chips above the list. Filters combine with AND, so chips of the same
+ * group would always give an empty list: picking one drops the other ones of its group.
+ */
+private enum class AppFilter(
+    @StringRes val label: Int,
+    val group: Int,
+    val matches: (DetachedApp) -> Boolean,
+) {
+    DETACHED(R.string.filter_detached, 0, { it.detached }),
+    NOT_DETACHED(R.string.filter_not_detached, 0, { !it.detached }),
+    UPDATED_SYSTEM(R.string.filter_updated_system, 1, { it.updatedSystem }),
+    NOT_INSTALLED(R.string.filter_not_installed, 1, { !it.installed }),
+    WORK_PROFILE(R.string.filter_work_profile, 1, { it.otherProfile }),
 }
 
 private sealed interface LoadState {
@@ -678,7 +685,8 @@ private fun AppsList(
                 SearchField(query) { query = it }
                 Spacer(Modifier.height(8.dp))
                 FilterChips(filters) { f ->
-                    filters = if (f in filters) filters - f else filters + f
+                    filters = if (f in filters) filters - f
+                    else filters.filterTo(HashSet()) { it.group != f.group } + f
                 }
                 Spacer(Modifier.height(8.dp))
             }
