@@ -332,17 +332,24 @@ private fun AppRow(
                 // the work label goes first so a long package name can't push it out of view
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (app.otherProfile) {
+                        val onlyThere = app.profileIcon != null
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            color = if (onlyThere) MaterialTheme.colorScheme.tertiaryContainer
+                            else MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = if (onlyThere) MaterialTheme.colorScheme.onTertiaryContainer
+                            else MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.padding(end = 6.dp)
                         ) {
+                            // no vertical padding: a pill taller than one text line makes ListItem
+                            // switch to the three-line height
                             Text(
-                                stringResource(R.string.filter_work_profile),
+                                stringResource(
+                                    if (onlyThere) R.string.filter_work_profile else R.string.both_profiles
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 8.dp)
                             )
                         }
                     }

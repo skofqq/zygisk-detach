@@ -49,4 +49,5 @@
     <string name="update_failed">Ошибка обновления: %1$s</string>
     <string name="update_signature">Эта копия подписана другим ключом. Нажмите, чтобы открыть релиз, и переустановите приложение вручную</string>
     <string name="filter_work_profile">Рабочий профиль</string>
+    <string name="both_profiles">Оба профиля</string>
 </resources>

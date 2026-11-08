@@ -49,4 +49,5 @@
     <string name="update_failed">Помилка оновлення: %1$s</string>
     <string name="update_signature">Ця копія підписана іншим ключем. Натисніть, щоб відкрити реліз, і перевстановіть застосунок вручну</string>
     <string name="filter_work_profile">Робочий профіль</string>
+    <string name="both_profiles">Обидва профілі</string>
 </resources>
