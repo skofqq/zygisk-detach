@@ -50,7 +50,5 @@
     <string name="update_installing">Installing %1$s, the app will restart</string>
     <string name="update_failed">Update failed: %1$s</string>
     <string name="update_signature">This copy is signed with a different key. Tap to open the release, then reinstall the app manually</string>
-    <string name="other_profile">%1$s · work profile</string>
     <string name="filter_work_profile">Work profile</string>
-    <string name="also_other_profile">%1$s · also in work profile</string>
 </resources>

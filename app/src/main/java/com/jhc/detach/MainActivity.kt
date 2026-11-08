@@ -322,16 +322,30 @@ private fun AppRow(
                 )
             },
             supportingContent = {
-                Text(
-                    when {
-                        !app.installed -> stringResource(R.string.not_installed, app.packageName)
-                        app.profileIcon != null -> stringResource(R.string.other_profile, app.packageName)
-                        app.otherProfile -> stringResource(R.string.also_other_profile, app.packageName)
-                        else -> app.packageName
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // the work label goes first so a long package name can't push it out of view
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (app.otherProfile) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(end = 6.dp)
+                        ) {
+                            Text(
+                                stringResource(R.string.filter_work_profile),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        if (app.installed) app.packageName
+                        else stringResource(R.string.not_installed, app.packageName),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             },
             trailingContent = {
                 Switch(

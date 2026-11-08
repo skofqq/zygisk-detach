@@ -48,7 +48,5 @@
     <string name="update_installing">%1$s wird installiert, die App startet neu</string>
     <string name="update_failed">Update fehlgeschlagen: %1$s</string>
     <string name="update_signature">Diese Kopie ist mit einem anderen Schlüssel signiert. Tippe, um das Release zu öffnen, und installiere die App manuell neu</string>
-    <string name="other_profile">%1$s · Arbeitsprofil</string>
     <string name="filter_work_profile">Arbeitsprofil</string>
-    <string name="also_other_profile">%1$s · auch im Arbeitsprofil</string>
 </resources>

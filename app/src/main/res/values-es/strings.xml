@@ -48,7 +48,5 @@
     <string name="update_installing">Instalando %1$s, la app se reiniciará</string>
     <string name="update_failed">Error al actualizar: %1$s</string>
     <string name="update_signature">Esta copia está firmada con otra clave. Toca para abrir la versión y reinstala la app manualmente</string>
-    <string name="other_profile">%1$s · perfil de trabajo</string>
     <string name="filter_work_profile">Perfil de trabajo</string>
-    <string name="also_other_profile">%1$s · también en el perfil de trabajo</string>
 </resources>
