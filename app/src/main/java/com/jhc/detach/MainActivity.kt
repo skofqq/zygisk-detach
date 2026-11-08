@@ -191,7 +191,7 @@ private fun addOtherProfileApps(
     for (profile in userManager.userProfiles) {
         if (profile == Process.myUserHandle()) continue
         // UserHandle.hashCode() is the user id
-        for (line in runShell("pm list packages -f -3 --user ${profile.hashCode()}").out) {
+        for (line in runShell("pm list packages -f -3 --user ${profile.hashCode()}").out.splitn()) {
             if (!line.startsWith("package:")) continue
             val apk = line.removePrefix("package:").substringBeforeLast('=')
             val packageName = line.substringAfterLast('=')
