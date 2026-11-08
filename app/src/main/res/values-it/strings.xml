@@ -49,4 +49,6 @@
     <string name="update_failed">Aggiornamento non riuscito: %1$s</string>
     <string name="update_signature">Questa copia è firmata con un\'altra chiave. Tocca per aprire la release e reinstalla l\'app manualmente</string>
     <string name="other_profile">%1$s · profilo di lavoro</string>
+    <string name="filter_work_profile">Profilo di lavoro</string>
+    <string name="also_other_profile">%1$s · anche nel profilo di lavoro</string>
 </resources>

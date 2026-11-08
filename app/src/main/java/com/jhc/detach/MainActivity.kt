@@ -133,6 +133,9 @@ class DetachedApp(
     val profileIcon: ImageBitmap? = null,
 ) {
     var detached by mutableStateOf(detached)
+
+    /** Installed in the work profile or private space (possibly in ours too). */
+    var otherProfile = false
 }
 
 /** Main sections, switched from the bottom bar. */
@@ -154,6 +157,7 @@ private enum class AppFilter(@StringRes val label: Int, val matches: (DetachedAp
     NOT_DETACHED(R.string.filter_not_detached, { !it.detached }),
     UPDATED_SYSTEM(R.string.filter_updated_system, { it.updatedSystem }),
     NOT_INSTALLED(R.string.filter_not_installed, { !it.installed }),
+    WORK_PROFILE(R.string.filter_work_profile, { it.otherProfile }),
 }
 
 private sealed interface LoadState {
@@ -178,30 +182,40 @@ private fun String.splitn() =
  * which covers just our own user. Root lists them with their APK paths, and the label and icon are
  * read from the APK itself. The detach list is by package name, so one entry covers every profile.
  */
-private fun otherProfileApps(
+private fun addOtherProfileApps(
     packageManager: PackageManager,
     userManager: UserManager,
-    known: MutableSet<String>,
-): List<DetachedApp> = userManager.userProfiles
-    .filter { it != Process.myUserHandle() }
-    .flatMap { profile ->
+    apps: MutableList<DetachedApp>,
+) {
+    val byName = apps.associateBy { it.packageName }.toMutableMap()
+    for (profile in userManager.userProfiles) {
+        if (profile == Process.myUserHandle()) continue
         // UserHandle.hashCode() is the user id
-        runShell("pm list packages -f -3 --user ${profile.hashCode()}").out.splitn().mapNotNull { line ->
+        for (line in runShell("pm list packages -f -3 --user ${profile.hashCode()}").out) {
+            if (!line.startsWith("package:")) continue
             val apk = line.removePrefix("package:").substringBeforeLast('=')
             val packageName = line.substringAfterLast('=')
-            if (!line.startsWith("package:") || !known.add(packageName)) return@mapNotNull null
+            val existing = byName[packageName]
+            if (existing != null) {
+                existing.otherProfile = true
+                continue
+            }
             val info = packageManager.getPackageArchiveInfo(apk, 0)?.applicationInfo?.apply {
                 sourceDir = apk
                 publicSourceDir = apk
             }
             val icon = info?.loadIcon(packageManager) ?: packageManager.defaultActivityIcon
-            DetachedApp(
+            val app = DetachedApp(
                 packageName,
                 info?.loadLabel(packageManager)?.toString() ?: packageName,
                 profileIcon = packageManager.getUserBadgedIcon(icon, profile).toBitmap().asImageBitmap(),
             )
+            app.otherProfile = true
+            apps += app
+            byName[packageName] = app
         }
     }
+}
 
 private fun loadApps(packageManager: PackageManager, userManager: UserManager): LoadState {
     if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
@@ -219,7 +233,7 @@ private fun loadApps(packageManager: PackageManager, userManager: UserManager): 
             )
         }
     }.toMutableList()
-    apps += otherProfileApps(packageManager, userManager, apps.mapTo(HashSet()) { it.packageName })
+    addOtherProfileApps(packageManager, userManager, apps)
     val list = runShell("$DETACH_BIN list")
     val alDetach: List<String> = if (list.ok) {
         list.out.splitn()
@@ -312,6 +326,7 @@ private fun AppRow(
                     when {
                         !app.installed -> stringResource(R.string.not_installed, app.packageName)
                         app.profileIcon != null -> stringResource(R.string.other_profile, app.packageName)
+                        app.otherProfile -> stringResource(R.string.also_other_profile, app.packageName)
                         else -> app.packageName
                     },
                     maxLines = 1,
