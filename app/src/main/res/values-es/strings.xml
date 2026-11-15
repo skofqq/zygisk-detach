@@ -50,4 +50,14 @@
     <string name="update_signature">Esta copia está firmada con otra clave. Toca para abrir la versión y reinstala la app manualmente</string>
     <string name="filter_work_profile">Perfil de trabajo</string>
     <string name="both_profiles">Ambos perfiles</string>
+    <string name="backup_group">Copia de seguridad</string>
+    <string name="backup_export">Exportar lista</string>
+    <string name="backup_export_summary">Guardar las apps desvinculadas en un archivo</string>
+    <string name="backup_import">Importar lista</string>
+    <string name="backup_import_summary">Añadir a la lista las apps de un archivo</string>
+    <string name="backup_exported">%1$d apps guardadas</string>
+    <string name="backup_imported">%1$d añadidas, %2$d desvinculadas en total</string>
+    <string name="backup_imported_nothing">Todas las apps del archivo ya están desvinculadas</string>
+    <string name="backup_empty">La lista está vacía, no hay nada que exportar</string>
+    <string name="backup_invalid">Este archivo no es una lista de desvinculación</string>
 </resources>

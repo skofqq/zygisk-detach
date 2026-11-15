@@ -52,4 +52,14 @@
     <string name="update_signature">This copy is signed with a different key. Tap to open the release, then reinstall the app manually</string>
     <string name="filter_work_profile">Work profile</string>
     <string name="both_profiles">Both profiles</string>
+    <string name="backup_group">Backup</string>
+    <string name="backup_export">Export list</string>
+    <string name="backup_export_summary">Save the detached apps to a file</string>
+    <string name="backup_import">Import list</string>
+    <string name="backup_import_summary">Add apps from a file to the detach list</string>
+    <string name="backup_exported">Saved %1$d apps</string>
+    <string name="backup_imported">Added %1$d apps, %2$d detached in total</string>
+    <string name="backup_imported_nothing">All apps from the file are already detached</string>
+    <string name="backup_empty">The detach list is empty, nothing to export</string>
+    <string name="backup_invalid">This file is not a detach list</string>
 </resources>

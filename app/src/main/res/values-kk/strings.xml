@@ -50,4 +50,14 @@
     <string name="update_signature">Бұл көшірме басқа кілтпен қол қойылған. Шығарылымды ашу үшін түртіп, қолданбаны қолмен қайта орнатыңыз</string>
     <string name="filter_work_profile">Жұмыс профилі</string>
     <string name="both_profiles">Екі профильде</string>
+    <string name="backup_group">Сақтық көшірме</string>
+    <string name="backup_export">Тізімді экспорттау</string>
+    <string name="backup_export_summary">Ажыратылған қолданбаларды файлға сақтау</string>
+    <string name="backup_import">Тізімді импорттау</string>
+    <string name="backup_import_summary">Файлдағы қолданбаларды тізімге қосу</string>
+    <string name="backup_exported">Сақталған қолданбалар: %1$d</string>
+    <string name="backup_imported">Қосылды: %1$d, барлығы ажыратылған: %2$d</string>
+    <string name="backup_imported_nothing">Файлдағы барлық қолданба әлдеқашан ажыратылған</string>
+    <string name="backup_empty">Тізім бос, экспорттайтын ештеңе жоқ</string>
+    <string name="backup_invalid">Бұл файл ажырату тізіміне ұқсамайды</string>
 </resources>

@@ -50,4 +50,14 @@
     <string name="update_signature">Ця копія підписана іншим ключем. Натисніть, щоб відкрити реліз, і перевстановіть застосунок вручну</string>
     <string name="filter_work_profile">Робочий профіль</string>
     <string name="both_profiles">Обидва профілі</string>
+    <string name="backup_group">Резервна копія</string>
+    <string name="backup_export">Експорт списку</string>
+    <string name="backup_export_summary">Зберегти відв’язані застосунки у файл</string>
+    <string name="backup_import">Імпорт списку</string>
+    <string name="backup_import_summary">Додати застосунки з файлу до списку</string>
+    <string name="backup_exported">Збережено застосунків: %1$d</string>
+    <string name="backup_imported">Додано: %1$d, усього відв’язано: %2$d</string>
+    <string name="backup_imported_nothing">Усі застосунки з файлу вже відв’язані</string>
+    <string name="backup_empty">Список порожній, нічого експортувати</string>
+    <string name="backup_invalid">Цей файл не схожий на список відв’язування</string>
 </resources>
