@@ -37,7 +37,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -92,6 +96,17 @@ fun SettingsScreen(onBack: () -> Unit) {
     val obtainiumMissing = stringResource(R.string.obtainium_missing)
 
     val update = Updater.state
+    var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
+    if (showUpdateDialog && update is UpdateState.Available) {
+        UpdateDialog(
+            update,
+            onInstall = {
+                showUpdateDialog = false
+                Updater.downloadAndInstall(context)
+            },
+            onDismiss = { showUpdateDialog = false }
+        )
+    }
     val updateSummary = when (update) {
         UpdateState.Idle -> stringResource(R.string.update_idle, version)
         UpdateState.Checking -> stringResource(R.string.update_checking)
@@ -116,7 +131,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         ) {
             when {
-                update is UpdateState.Available -> Updater.downloadAndInstall(context)
+                update is UpdateState.Available -> { showUpdateDialog = true }
                 update is UpdateState.Failed && update.signatureMismatch ->
                     context.openUri("$REPO_URL/releases/latest")
                 else -> Updater.check(version)
