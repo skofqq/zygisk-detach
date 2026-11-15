@@ -120,7 +120,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val DETACH_BIN = "/data/adb/modules/zygisk-detach/detach"
+private const val DETACH_BIN = "$MODULE_DIR/detach"
 
 class DetachedApp(
     val packageName: String,
@@ -170,7 +170,9 @@ private enum class AppFilter(
 private sealed interface LoadState {
     data object Loading : LoadState
     data class Failed(@StringRes val messageRes: Int = 0, val message: String = "") : LoadState
-    data class Loaded(val apps: List<DetachedApp>) : LoadState
+    /** The module's detach binary is missing; [pendingReboot] when it's installed but not active yet. */
+    data class NoModule(val pendingReboot: Boolean) : LoadState
+    data class Loaded(val apps: List<DetachedApp>, val module: ModuleStatus) : LoadState
 }
 
 private class ShellResult(val ok: Boolean, val out: String, val err: String)
@@ -226,9 +228,8 @@ private fun addOtherProfileApps(
 
 private fun loadApps(packageManager: PackageManager, userManager: UserManager): LoadState {
     if (!Shell.getShell().isRoot) return LoadState.Failed(R.string.error_no_root)
-    if (!runShell("test -f $DETACH_BIN").ok) {
-        return LoadState.Failed(R.string.error_no_module)
-    }
+    val module = ModuleStatus.read()
+    if (!module.installed) return LoadState.NoModule(pendingReboot = module.updatePending)
 
     val apps = packageManager.getInstalledPackages(0).mapNotNull {
         it.applicationInfo?.let { info ->
@@ -255,7 +256,7 @@ private fun loadApps(packageManager: PackageManager, userManager: UserManager): 
         }
     }
     apps.forEach { it.detached = alDetach.contains(it.packageName) }
-    return LoadState.Loaded(apps.sortedBy { it.label.lowercase() }.sortedBy { !it.detached })
+    return LoadState.Loaded(apps.sortedBy { it.label.lowercase() }.sortedBy { !it.detached }, module)
 }
 
 /** Shapes of a segmented list: large outer corners, small inner corners. */
@@ -539,7 +540,8 @@ private fun DetachScreen(
     uninstalledIcon: ImageBitmap,
     onOpenSettings: () -> Unit,
 ) {
-    val userManager = LocalContext.current.getSystemService(UserManager::class.java)
+    val context = LocalContext.current
+    val userManager = context.getSystemService(UserManager::class.java)
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(reloadKey) {
@@ -561,6 +563,54 @@ private fun DetachScreen(
     var source by remember { mutableStateOf(AppSource.ALL) }
 
     val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
+    val module = (state as? LoadState.Loaded)?.module
+
+    // newest module release, checked once per start in the background (cached for a few hours)
+    var latestModule by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        latestModule = withContext(Dispatchers.IO) { ModuleRelease.latest(context.applicationContext) }
+    }
+    var dismissedModule by remember { mutableStateOf(ModuleRelease.dismissed(context)) }
+    // turned back on from the notice: it only takes effect after a reboot
+    var enabledModule by rememberSaveable { mutableStateOf(false) }
+    var confirmReboot by remember { mutableStateOf(false) }
+    val notices = buildList {
+        if (module == null) return@buildList
+        when {
+            module.removing -> add(ModuleNotice.Removing)
+            module.updatePending || enabledModule -> add(ModuleNotice.Reboot)
+            module.disabled -> add(ModuleNotice.Disabled)
+            module.zygiskOff -> add(ModuleNotice.ZygiskOff)
+        }
+        val latest = latestModule
+        val current = module.version
+        if (latest != null && current != null && !module.updatePending &&
+            latest != dismissedModule && isNewerVersion(latest, current)
+        ) add(ModuleNotice.Outdated(current.removePrefix("v"), latest))
+    }
+    val onNoticeAction: (ModuleNotice) -> Unit = { notice ->
+        when (notice) {
+            ModuleNotice.Disabled -> scope.launch {
+                if (withContext(Dispatchers.IO) { ModuleStatus.enable() }) enabledModule = true
+            }
+            ModuleNotice.Reboot -> confirmReboot = true
+            ModuleNotice.Removing -> scope.launch {
+                withContext(Dispatchers.IO) { ModuleStatus.keep() }
+                reloadKey++
+            }
+            ModuleNotice.ZygiskOff -> {}
+            is ModuleNotice.Outdated -> context.openUri(MODULE_RELEASES)
+        }
+    }
+    val onNoticeDismiss: (ModuleNotice) -> Unit = { notice ->
+        if (notice is ModuleNotice.Outdated) {
+            ModuleRelease.dismiss(context, notice.latest)
+            dismissedModule = notice.latest
+        }
+    }
+    if (confirmReboot) {
+        RebootDialog(onConfirm = { confirmReboot = false; ModuleStatus.reboot() }, onDismiss = { confirmReboot = false })
+    }
     // what the module actually has detached; pending switch changes don't count until applied
     var applied by remember { mutableStateOf(emptySet<String>()) }
     LaunchedEffect(state) {
@@ -628,6 +678,14 @@ private fun DetachScreen(
                 LoadingIndicator(modifier = Modifier.size(96.dp))
             }
 
+            is LoadState.NoModule -> NoModuleScreen(
+                pendingReboot = s.pendingReboot,
+                innerPadding = innerPadding,
+                onDownload = { context.openUri(MODULE_RELEASES) },
+                onReboot = { confirmReboot = true },
+                onRetry = { reloadKey++ },
+            )
+
             is LoadState.Failed -> Box(
                 Modifier
                     .fillMaxSize()
@@ -650,6 +708,9 @@ private fun DetachScreen(
                 uninstalledIcon = uninstalledIcon,
                 source = source,
                 applied = applied,
+                notices = notices,
+                onNoticeAction = onNoticeAction,
+                onNoticeDismiss = onNoticeDismiss,
             )
         }
     }
@@ -664,6 +725,9 @@ private fun AppsList(
     uninstalledIcon: ImageBitmap,
     source: AppSource,
     applied: Set<String>,
+    notices: List<ModuleNotice>,
+    onNoticeAction: (ModuleNotice) -> Unit,
+    onNoticeDismiss: (ModuleNotice) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
     var filters by remember { mutableStateOf(emptySet<AppFilter>()) }
@@ -692,6 +756,7 @@ private fun AppsList(
     ) {
         item(key = "header") {
             Column {
+                ModuleNotices(notices, onNoticeAction, onNoticeDismiss)
                 SearchField(query) { query = it }
                 Spacer(Modifier.height(8.dp))
                 FilterChips(filters) { f ->

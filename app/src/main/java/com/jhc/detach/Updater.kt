@@ -59,7 +59,7 @@ object Updater {
             state = UpdateState.Checking
             state = try {
                 val (version, apkUrl, size) = latestRelease()
-                if (isNewer(version, currentVersion)) UpdateState.Available(version, apkUrl, size)
+                if (isNewerVersion(version, currentVersion)) UpdateState.Available(version, apkUrl, size)
                 else UpdateState.UpToDate
             } catch (e: Exception) {
                 UpdateState.Failed(e.message ?: e.javaClass.simpleName)
@@ -203,17 +203,5 @@ object Updater {
             }
         }
         state = UpdateState.Failed("pm install timed out")
-    }
-
-    /** Compares dotted version numbers, e.g. "1.10" is newer than "1.9". */
-    private fun isNewer(candidate: String, current: String): Boolean {
-        val a = candidate.split('.', '-').map { it.toIntOrNull() ?: 0 }
-        val b = current.split('.', '-').map { it.toIntOrNull() ?: 0 }
-        for (i in 0 until maxOf(a.size, b.size)) {
-            val x = a.getOrElse(i) { 0 }
-            val y = b.getOrElse(i) { 0 }
-            if (x != y) return x > y
-        }
-        return false
     }
 }

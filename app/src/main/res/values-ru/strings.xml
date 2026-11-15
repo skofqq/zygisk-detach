@@ -50,4 +50,25 @@
     <string name="update_signature">Эта копия подписана другим ключом. Нажмите, чтобы открыть релиз, и переустановите приложение вручную</string>
     <string name="filter_work_profile">Рабочий профиль</string>
     <string name="both_profiles">Оба профиля</string>
+    <string name="module_missing_text">Приложение только редактирует список отвязки. Play Store патчит модуль zygisk-detach: установите его в Magisk, KernelSU или APatch и перезагрузитесь.</string>
+    <string name="module_installed_reboot_text">Модуль zygisk-detach установлен и заработает после перезагрузки.</string>
+    <string name="module_disabled_title">Модуль выключен</string>
+    <string name="module_disabled_text">zygisk-detach отключён в менеджере root, поэтому Play Store всё ещё обновляет отвязанные приложения.</string>
+    <string name="module_reboot_title">Перезагрузите устройство</string>
+    <string name="module_reboot_text">Модуль установлен, обновлён или включён. Изменения вступят в силу после перезагрузки.</string>
+    <string name="module_removing_title">Модуль будет удалён</string>
+    <string name="module_removing_text">zygisk-detach помечен на удаление в менеджере root. После перезагрузки отвязка перестанет работать.</string>
+    <string name="module_zygisk_off_title">Zygisk выключен</string>
+    <string name="module_zygisk_off_text">Включите Zygisk в настройках Magisk и перезагрузитесь, иначе модуль не сможет скрывать обновления от Play Store.</string>
+    <string name="module_outdated_title">Доступно обновление модуля</string>
+    <string name="module_outdated_text">Вышел zygisk-detach %1$s, у вас %2$s.</string>
+    <string name="module_action_enable">Включить</string>
+    <string name="module_action_reboot">Перезагрузить</string>
+    <string name="module_action_keep">Оставить модуль</string>
+    <string name="module_action_releases">Открыть релизы</string>
+    <string name="module_action_later">Позже</string>
+    <string name="module_action_download">Скачать модуль</string>
+    <string name="module_action_retry">Проверить снова</string>
+    <string name="module_reboot_confirm_title">Перезагрузить сейчас?</string>
+    <string name="module_reboot_confirm_text">Устройство сразу перезагрузится. Сохраните то, что открыто в других приложениях.</string>
 </resources>

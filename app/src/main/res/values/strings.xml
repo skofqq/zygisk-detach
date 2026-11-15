@@ -52,4 +52,25 @@
     <string name="update_signature">This copy is signed with a different key. Tap to open the release, then reinstall the app manually</string>
     <string name="filter_work_profile">Work profile</string>
     <string name="both_profiles">Both profiles</string>
+    <string name="module_missing_text">This app only edits the detach list. Play Store is patched by the zygisk-detach module: install it in Magisk, KernelSU or APatch and reboot.</string>
+    <string name="module_installed_reboot_text">The zygisk-detach module is installed and becomes active after a reboot.</string>
+    <string name="module_disabled_title">The module is turned off</string>
+    <string name="module_disabled_text">zygisk-detach is disabled in your root manager, so Play Store still updates detached apps.</string>
+    <string name="module_reboot_title">Reboot to apply</string>
+    <string name="module_reboot_text">The module was installed, updated or turned on. The change takes effect after a reboot.</string>
+    <string name="module_removing_title">The module will be removed</string>
+    <string name="module_removing_text">zygisk-detach is marked for removal in your root manager. After a reboot detaching stops working.</string>
+    <string name="module_zygisk_off_title">Zygisk is off</string>
+    <string name="module_zygisk_off_text">Turn on Zygisk in Magisk settings and reboot, otherwise the module can\'t hide updates from Play Store.</string>
+    <string name="module_outdated_title">Module update available</string>
+    <string name="module_outdated_text">zygisk-detach %1$s is out, you have %2$s.</string>
+    <string name="module_action_enable">Turn on</string>
+    <string name="module_action_reboot">Reboot</string>
+    <string name="module_action_keep">Keep module</string>
+    <string name="module_action_releases">Open releases</string>
+    <string name="module_action_later">Later</string>
+    <string name="module_action_download">Download module</string>
+    <string name="module_action_retry">Check again</string>
+    <string name="module_reboot_confirm_title">Reboot now?</string>
+    <string name="module_reboot_confirm_text">The device restarts right away. Save anything open in other apps first.</string>
 </resources>

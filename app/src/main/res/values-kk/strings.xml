@@ -50,4 +50,25 @@
     <string name="update_signature">Бұл көшірме басқа кілтпен қол қойылған. Шығарылымды ашу үшін түртіп, қолданбаны қолмен қайта орнатыңыз</string>
     <string name="filter_work_profile">Жұмыс профилі</string>
     <string name="both_profiles">Екі профильде</string>
+    <string name="module_missing_text">Қолданба тек ажырату тізімін өңдейді. Play Store-ды zygisk-detach модулі түзетеді: оны Magisk, KernelSU немесе APatch арқылы орнатып, құрылғыны қайта іске қосыңыз.</string>
+    <string name="module_installed_reboot_text">zygisk-detach модулі орнатылды, қайта іске қосқаннан кейін жұмыс істейді.</string>
+    <string name="module_disabled_title">Модуль өшірулі</string>
+    <string name="module_disabled_text">zygisk-detach root менеджерінде өшірілген, сондықтан Play Store ажыратылған қолданбаларды әлі де жаңартады.</string>
+    <string name="module_reboot_title">Құрылғыны қайта іске қосыңыз</string>
+    <string name="module_reboot_text">Модуль орнатылды, жаңартылды немесе қосылды. Өзгерістер қайта іске қосқаннан кейін күшіне енеді.</string>
+    <string name="module_removing_title">Модуль жойылады</string>
+    <string name="module_removing_text">zygisk-detach root менеджерінде жоюға белгіленген. Қайта іске қосқаннан кейін ажырату жұмыс істемей қалады.</string>
+    <string name="module_zygisk_off_title">Zygisk өшірулі</string>
+    <string name="module_zygisk_off_text">Magisk баптауларында Zygisk-ті қосып, құрылғыны қайта іске қосыңыз, әйтпесе модуль жаңартуларды Play Store-дан жасыра алмайды.</string>
+    <string name="module_outdated_title">Модуль жаңартуы бар</string>
+    <string name="module_outdated_text">zygisk-detach %1$s шықты, сізде %2$s.</string>
+    <string name="module_action_enable">Қосу</string>
+    <string name="module_action_reboot">Қайта іске қосу</string>
+    <string name="module_action_keep">Модульді қалдыру</string>
+    <string name="module_action_releases">Релиздерді ашу</string>
+    <string name="module_action_later">Кейінірек</string>
+    <string name="module_action_download">Модульді жүктеу</string>
+    <string name="module_action_retry">Қайта тексеру</string>
+    <string name="module_reboot_confirm_title">Қазір қайта іске қосу керек пе?</string>
+    <string name="module_reboot_confirm_text">Құрылғы бірден қайта іске қосылады. Басқа қолданбалардағы ашық деректерді алдымен сақтаңыз.</string>
 </resources>

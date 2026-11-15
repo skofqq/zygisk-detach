@@ -50,4 +50,25 @@
     <string name="update_signature">Esta copia está firmada con otra clave. Toca para abrir la versión y reinstala la app manualmente</string>
     <string name="filter_work_profile">Perfil de trabajo</string>
     <string name="both_profiles">Ambos perfiles</string>
+    <string name="module_missing_text">Esta app solo edita la lista de desvinculación. Play Store lo parchea el módulo zygisk-detach: instálalo en Magisk, KernelSU o APatch y reinicia.</string>
+    <string name="module_installed_reboot_text">El módulo zygisk-detach está instalado y se activará tras reiniciar.</string>
+    <string name="module_disabled_title">El módulo está desactivado</string>
+    <string name="module_disabled_text">zygisk-detach está desactivado en tu gestor root, así que Play Store sigue actualizando las apps desvinculadas.</string>
+    <string name="module_reboot_title">Reinicia para aplicar</string>
+    <string name="module_reboot_text">El módulo se instaló, actualizó o activó. El cambio surte efecto tras reiniciar.</string>
+    <string name="module_removing_title">El módulo se eliminará</string>
+    <string name="module_removing_text">zygisk-detach está marcado para eliminarse en tu gestor root. Tras reiniciar, la desvinculación dejará de funcionar.</string>
+    <string name="module_zygisk_off_title">Zygisk está desactivado</string>
+    <string name="module_zygisk_off_text">Activa Zygisk en los ajustes de Magisk y reinicia; si no, el módulo no puede ocultar las actualizaciones a Play Store.</string>
+    <string name="module_outdated_title">Actualización del módulo disponible</string>
+    <string name="module_outdated_text">Ha salido zygisk-detach %1$s, tienes la %2$s.</string>
+    <string name="module_action_enable">Activar</string>
+    <string name="module_action_reboot">Reiniciar</string>
+    <string name="module_action_keep">Conservar módulo</string>
+    <string name="module_action_releases">Abrir versiones</string>
+    <string name="module_action_later">Más tarde</string>
+    <string name="module_action_download">Descargar módulo</string>
+    <string name="module_action_retry">Comprobar de nuevo</string>
+    <string name="module_reboot_confirm_title">¿Reiniciar ahora?</string>
+    <string name="module_reboot_confirm_text">El dispositivo se reiniciará enseguida. Guarda antes lo que tengas abierto en otras apps.</string>
 </resources>
