@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -62,4 +61,14 @@ jobs:
           fi
           apk="out/zygisk-detach-app-$tag.apk"
           mv out/*.apk "$apk"
-          gh release create "$tag" "$apk" --target "$GITHUB_SHA" --title "$tag" --generate-notes
+          # notes: the "## <version>" section of CHANGELOG.md (shown by the in-app updater),
+          # GitHub's generated notes when there is none
+          awk -v v="${tag#v}" '
+            /^## / { if (found) exit; split($2, h, " "); found = (h[1] == v); next }
+            found
+          ' CHANGELOG.md 2>/dev/null > "$RUNNER_TEMP/notes.md" || true
+          if grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            gh release create "$tag" "$apk" --target "$GITHUB_SHA" --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$tag" "$apk" --target "$GITHUB_SHA" --title "$tag" --generate-notes
+          fi
