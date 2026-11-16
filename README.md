@@ -16,7 +16,12 @@ Based on [j-hc/zygisk-detach-app](https://github.com/j-hc/zygisk-detach-app) by 
 - Work profile (and private space) apps are listed with a badge, a label and their own filter, no second install needed
 - Predictive back gesture in settings
 - Translations: ru, uk, be, kk, de, es, it
-- GitHub Actions builds and releases
+- The updater shows the release notes (from [CHANGELOG.md](CHANGELOG.md)) before installing
+- GitHub Actions builds and releases; every pull request gets a debug APK
+
+### Releasing
+
+Bump `versionName`/`versionCode` in `app/build.gradle.kts` and add a `## <version>` section to [CHANGELOG.md](CHANGELOG.md). Pushing to `main` builds the signed APK and publishes release `v<version>` with that section as its notes.
 
 ### License
 

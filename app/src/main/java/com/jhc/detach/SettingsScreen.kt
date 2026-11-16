@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,11 +39,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -81,7 +88,7 @@ internal fun Context.openUri(uri: String): Boolean = try {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onListImported: () -> Unit) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -91,7 +98,63 @@ fun SettingsScreen(onBack: () -> Unit) {
     }
     val obtainiumMissing = stringResource(R.string.obtainium_missing)
 
+    // export / import of the detach list through the system file picker
+    fun showBackupResult(result: Backup.Result) {
+        val message = when (result) {
+            is Backup.Result.Exported -> context.getString(R.string.backup_exported, result.count)
+            is Backup.Result.Imported ->
+                if (result.added == 0) context.getString(R.string.backup_imported_nothing)
+                else context.getString(R.string.backup_imported, result.added, result.total)
+            Backup.Result.EmptyList -> context.getString(R.string.backup_empty)
+            Backup.Result.InvalidFile -> context.getString(R.string.backup_invalid)
+            is Backup.Result.Failed -> context.getString(R.string.snackbar_error, result.message)
+        }
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        if (uri != null) scope.launch { showBackupResult(Backup.exportTo(context, uri)) }
+    }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            val result = Backup.importFrom(context, uri)
+            if (result is Backup.Result.Imported && result.added > 0) onListImported()
+            showBackupResult(result)
+        }
+    }
+    val backup = listOf(
+        SettingsItem(
+            ImageVector.vectorResource(R.drawable.ic_upload),
+            R.string.backup_export,
+            stringResource(R.string.backup_export_summary)
+        ) {
+            scope.launch {
+                if (Backup.hasDetached()) exportLauncher.launch(Backup.suggestedFileName())
+                else showBackupResult(Backup.Result.EmptyList)
+            }
+        },
+        SettingsItem(
+            ImageVector.vectorResource(R.drawable.ic_download),
+            R.string.backup_import,
+            stringResource(R.string.backup_import_summary)
+        ) { importLauncher.launch(arrayOf("text/*", "application/octet-stream")) },
+    )
+
     val update = Updater.state
+    var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
+    if (showUpdateDialog && update is UpdateState.Available) {
+        UpdateDialog(
+            update,
+            onInstall = {
+                showUpdateDialog = false
+                Updater.downloadAndInstall(context)
+            },
+            onDismiss = { showUpdateDialog = false }
+        )
+    }
     val updateSummary = when (update) {
         UpdateState.Idle -> stringResource(R.string.update_idle, version)
         UpdateState.Checking -> stringResource(R.string.update_checking)
@@ -116,7 +179,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         ) {
             when {
-                update is UpdateState.Available -> Updater.downloadAndInstall(context)
+                update is UpdateState.Available -> { showUpdateDialog = true }
                 update is UpdateState.Failed && update.signatureMismatch ->
                     context.openUri("$REPO_URL/releases/latest")
                 else -> Updater.check(version)
@@ -175,6 +238,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         ) {
             appearanceGroup()
+            settingsGroup(R.string.backup_group, backup)
             settingsGroup(R.string.settings_updates, updates)
             settingsGroup(R.string.settings_about, about)
         }

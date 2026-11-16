@@ -21,7 +21,13 @@ sealed interface UpdateState {
     data object Idle : UpdateState
     data object Checking : UpdateState
     data object UpToDate : UpdateState
-    data class Available(val version: String, val apkUrl: String, val size: Long) : UpdateState
+    /** [notes]: Markdown release notes of the versions since the installed one, may be empty. */
+    data class Available(
+        val version: String,
+        val apkUrl: String,
+        val size: Long,
+        val notes: String,
+    ) : UpdateState
     data class Downloading(val version: String, val progress: Float) : UpdateState
     data class Installing(val version: String) : UpdateState
     data class Failed(val message: String, val signatureMismatch: Boolean = false) : UpdateState
@@ -34,6 +40,7 @@ sealed interface UpdateState {
  */
 object Updater {
     private const val REPO_URL = "https://github.com/skofqq/zygisk-detach"
+    private const val RAW_URL = "https://raw.githubusercontent.com/skofqq/zygisk-detach"
     private const val LATEST_RELEASE =
         "https://api.github.com/repos/skofqq/zygisk-detach/releases/latest"
     private const val INSTALL_APK = "/data/local/tmp/zygisk-detach-update.apk"
@@ -58,8 +65,11 @@ object Updater {
         job = scope.launch {
             state = UpdateState.Checking
             state = try {
-                val (version, apkUrl, size) = latestRelease()
-                if (isNewerVersion(version, currentVersion)) UpdateState.Available(version, apkUrl, size)
+                val release = latestRelease()
+                if (isNewerVersion(release.version, currentVersion)) UpdateState.Available(
+                    release.version, release.apkUrl, release.size,
+                    releaseNotes(release, currentVersion)
+                )
                 else UpdateState.UpToDate
             } catch (e: Exception) {
                 UpdateState.Failed(e.message ?: e.javaClass.simpleName)
@@ -86,7 +96,13 @@ object Updater {
         }
     }
 
-    private data class Release(val version: String, val apkUrl: String, val size: Long)
+    private data class Release(
+        val version: String,
+        val apkUrl: String,
+        val size: Long,
+        /** Release body from the API, null when it came from the redirect. */
+        val body: String? = null,
+    )
 
     private fun latestRelease(): Release = try {
         val release = JSONObject(get(LATEST_RELEASE))
@@ -95,7 +111,10 @@ object Updater {
         val apk = (0 until assets.length()).map { assets.getJSONObject(it) }
             .firstOrNull { it.getString("name").endsWith(".apk") }
             ?: error("no APK in release v$version")
-        Release(version, apk.getString("browser_download_url"), apk.optLong("size"))
+        Release(
+            version, apk.getString("browser_download_url"), apk.optLong("size"),
+            release.optString("body")
+        )
     } catch (_: RateLimited) {
         latestReleaseFromRedirect()
     }
@@ -125,12 +144,50 @@ object Updater {
         }
     }
 
+    /**
+     * What changed since [currentVersion]: every CHANGELOG.md section newer than it, up to the
+     * release (read from raw.githubusercontent.com at the release tag, which has no API rate
+     * limit), so skipped versions are listed too. Falls back to the release body.
+     */
+    private fun releaseNotes(release: Release, currentVersion: String): String {
+        val fromChangelog = try {
+            changelogSections(get("$RAW_URL/v${release.version}/CHANGELOG.md", json = false))
+                .filter { (version, _) ->
+                    isNewerVersion(version, currentVersion) && !isNewerVersion(version, release.version)
+                }
+        } catch (_: Exception) {
+            emptyList()
+        }
+        return when (fromChangelog.size) {
+            0 -> release.body.orEmpty().lines()
+                .filterNot { it.startsWith("**Full Changelog**") }
+                .joinToString("\n").trim()
+            1 -> fromChangelog.single().second
+            else -> fromChangelog.joinToString("\n\n") { (version, notes) -> "## $version\n$notes" }
+        }
+    }
+
+    /** "## 1.8" sections of CHANGELOG.md as (version, body) pairs; the title may follow the version. */
+    private fun changelogSections(changelog: String): List<Pair<String, String>> {
+        val sections = mutableListOf<Pair<String, StringBuilder>>()
+        for (line in changelog.lines()) {
+            if (line.startsWith("## ")) {
+                val version = line.removePrefix("## ").trim().substringBefore(' ').removePrefix("v")
+                sections += version to StringBuilder()
+            } else {
+                sections.lastOrNull()?.second?.appendLine(line)
+            }
+        }
+        return sections.map { (version, body) -> version to body.toString().trim() }
+            .filter { it.second.isNotEmpty() }
+    }
+
     private class RateLimited : Exception()
 
-    private fun get(url: String): String {
+    private fun get(url: String, json: Boolean = true): String {
         val conn = URL(url).openConnection() as HttpURLConnection
         try {
-            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            if (json) conn.setRequestProperty("Accept", "application/vnd.github+json")
             conn.setRequestProperty("User-Agent", "zygisk-detach-app")
             conn.connectTimeout = 15_000
             conn.readTimeout = 15_000

@@ -120,7 +120,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val DETACH_BIN = "$MODULE_DIR/detach"
+internal const val DETACH_BIN = "$MODULE_DIR/detach"
 
 class DetachedApp(
     val packageName: String,
@@ -175,14 +175,14 @@ private sealed interface LoadState {
     data class Loaded(val apps: List<DetachedApp>, val module: ModuleStatus) : LoadState
 }
 
-private class ShellResult(val ok: Boolean, val out: String, val err: String)
+internal class ShellResult(val ok: Boolean, val out: String, val err: String)
 
-private fun runShell(cmd: String): ShellResult {
+internal fun runShell(cmd: String): ShellResult {
     val op = Shell.cmd(cmd).exec()
     return ShellResult(op.code == 0, op.out.joinToString("\n"), op.err.joinToString("\n"))
 }
 
-private fun String.splitn() =
+internal fun String.splitn() =
     if (isEmpty()) emptyList()
     else this.split('\n')
 
@@ -539,12 +539,14 @@ private fun DetachScreen(
     packageManager: PackageManager,
     uninstalledIcon: ImageBitmap,
     onOpenSettings: () -> Unit,
+    /** Bumped when the list changed outside this screen (an import in settings). */
+    externalReload: Int = 0,
 ) {
     val context = LocalContext.current
     val userManager = context.getSystemService(UserManager::class.java)
     var state by remember { mutableStateOf<LoadState>(LoadState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
-    LaunchedEffect(reloadKey) {
+    LaunchedEffect(reloadKey, externalReload) {
         state = LoadState.Loading
         state = withContext(Dispatchers.IO) {
             try {
@@ -818,6 +820,7 @@ class MainActivity : ComponentActivity() {
             }
             ZygiskdetachTheme(darkTheme = dark) {
                 var showSettings by rememberSaveable { mutableStateOf(false) }
+                var listImports by remember { mutableIntStateOf(0) }
                 // predictive back: the settings page shrinks toward the swipe and reveals the list
                 val backProgress = remember { Animatable(0f) }
                 var swipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
@@ -835,7 +838,12 @@ class MainActivity : ComponentActivity() {
                 }
                 // settings slide over the main screen so its state (pending switches) survives
                 Box {
-                    DetachScreen(packageManager, uninstalledIcon, onOpenSettings = { showSettings = true })
+                    DetachScreen(
+                        packageManager,
+                        uninstalledIcon,
+                        onOpenSettings = { showSettings = true },
+                        externalReload = listImports,
+                    )
                     AnimatedVisibility(
                         visible = showSettings,
                         enter = slideInHorizontally { it } + fadeIn(),
@@ -855,7 +863,10 @@ class MainActivity : ComponentActivity() {
                                 clip = progress > 0f
                             }
                         ) {
-                            SettingsScreen(onBack = { showSettings = false })
+                            SettingsScreen(
+                                onBack = { showSettings = false },
+                                onListImported = { listImports++ },
+                            )
                         }
                     }
                 }
