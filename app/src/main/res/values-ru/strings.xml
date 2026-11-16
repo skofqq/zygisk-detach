@@ -50,4 +50,14 @@
     <string name="update_signature">Эта копия подписана другим ключом. Нажмите, чтобы открыть релиз, и переустановите приложение вручную</string>
     <string name="filter_work_profile">Рабочий профиль</string>
     <string name="both_profiles">Оба профиля</string>
+    <string name="backup_group">Резервная копия</string>
+    <string name="backup_export">Экспорт списка</string>
+    <string name="backup_export_summary">Сохранить отвязанные приложения в файл</string>
+    <string name="backup_import">Импорт списка</string>
+    <string name="backup_import_summary">Добавить приложения из файла в список</string>
+    <string name="backup_exported">Сохранено приложений: %1$d</string>
+    <string name="backup_imported">Добавлено: %1$d, всего отвязано: %2$d</string>
+    <string name="backup_imported_nothing">Все приложения из файла уже отвязаны</string>
+    <string name="backup_empty">Список пуст, экспортировать нечего</string>
+    <string name="backup_invalid">Этот файл не похож на список отвязки</string>
 </resources>

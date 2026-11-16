@@ -50,4 +50,14 @@
     <string name="update_signature">Diese Kopie ist mit einem anderen Schlüssel signiert. Tippe, um das Release zu öffnen, und installiere die App manuell neu</string>
     <string name="filter_work_profile">Arbeitsprofil</string>
     <string name="both_profiles">Beide Profile</string>
+    <string name="backup_group">Sicherung</string>
+    <string name="backup_export">Liste exportieren</string>
+    <string name="backup_export_summary">Getrennte Apps in einer Datei speichern</string>
+    <string name="backup_import">Liste importieren</string>
+    <string name="backup_import_summary">Apps aus einer Datei zur Liste hinzufügen</string>
+    <string name="backup_exported">%1$d Apps gespeichert</string>
+    <string name="backup_imported">%1$d hinzugefügt, insgesamt %2$d getrennt</string>
+    <string name="backup_imported_nothing">Alle Apps aus der Datei sind bereits getrennt</string>
+    <string name="backup_empty">Die Liste ist leer, nichts zu exportieren</string>
+    <string name="backup_invalid">Diese Datei ist keine Trennliste</string>
 </resources>
