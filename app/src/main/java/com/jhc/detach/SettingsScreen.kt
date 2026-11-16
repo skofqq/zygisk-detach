@@ -79,7 +79,7 @@ private class SettingsItem(
     val onClick: () -> Unit,
 )
 
-private fun Context.openUri(uri: String): Boolean = try {
+internal fun Context.openUri(uri: String): Boolean = try {
     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     true
 } catch (_: ActivityNotFoundException) {

@@ -64,4 +64,25 @@
     <string name="backup_imported_nothing">Усі застосунки з файлу вже відв’язані</string>
     <string name="backup_empty">Список порожній, нічого експортувати</string>
     <string name="backup_invalid">Цей файл не схожий на список відв’язування</string>
+    <string name="module_missing_text">Застосунок лише редагує список відв’язки. Play Store патчить модуль zygisk-detach: встановіть його в Magisk, KernelSU або APatch і перезавантажтеся.</string>
+    <string name="module_installed_reboot_text">Модуль zygisk-detach встановлено, він запрацює після перезавантаження.</string>
+    <string name="module_disabled_title">Модуль вимкнено</string>
+    <string name="module_disabled_text">zygisk-detach вимкнено в менеджері root, тому Play Store досі оновлює відв’язані застосунки.</string>
+    <string name="module_reboot_title">Перезавантажте пристрій</string>
+    <string name="module_reboot_text">Модуль встановлено, оновлено або увімкнено. Зміни набудуть чинності після перезавантаження.</string>
+    <string name="module_removing_title">Модуль буде видалено</string>
+    <string name="module_removing_text">zygisk-detach позначено для видалення в менеджері root. Після перезавантаження відв’язка перестане працювати.</string>
+    <string name="module_zygisk_off_title">Zygisk вимкнено</string>
+    <string name="module_zygisk_off_text">Увімкніть Zygisk у налаштуваннях Magisk і перезавантажтеся, інакше модуль не зможе приховувати оновлення від Play Store.</string>
+    <string name="module_outdated_title">Доступне оновлення модуля</string>
+    <string name="module_outdated_text">Вийшов zygisk-detach %1$s, у вас %2$s.</string>
+    <string name="module_action_enable">Увімкнути</string>
+    <string name="module_action_reboot">Перезавантажити</string>
+    <string name="module_action_keep">Залишити модуль</string>
+    <string name="module_action_releases">Відкрити релізи</string>
+    <string name="module_action_later">Пізніше</string>
+    <string name="module_action_download">Завантажити модуль</string>
+    <string name="module_action_retry">Перевірити знову</string>
+    <string name="module_reboot_confirm_title">Перезавантажити зараз?</string>
+    <string name="module_reboot_confirm_text">Пристрій одразу перезавантажиться. Збережіть те, що відкрито в інших застосунках.</string>
 </resources>

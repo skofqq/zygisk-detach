@@ -64,4 +64,25 @@
     <string name="backup_imported_nothing">Усе праграмы з файла ўжо адвязаныя</string>
     <string name="backup_empty">Спіс пусты, няма чаго экспартаваць</string>
     <string name="backup_invalid">Гэты файл не падобны на спіс адвязкі</string>
+    <string name="module_missing_text">Праграма толькі рэдагуе спіс адвязкі. Play Store патчыць модуль zygisk-detach: усталюйце яго ў Magisk, KernelSU або APatch і перазагрузіцеся.</string>
+    <string name="module_installed_reboot_text">Модуль zygisk-detach усталяваны і запрацуе пасля перазагрузкі.</string>
+    <string name="module_disabled_title">Модуль выключаны</string>
+    <string name="module_disabled_text">zygisk-detach адключаны ў мэнэджары root, таму Play Store усё яшчэ абнаўляе адвязаныя праграмы.</string>
+    <string name="module_reboot_title">Перазагрузіце прыладу</string>
+    <string name="module_reboot_text">Модуль усталяваны, абноўлены або ўключаны. Змены ўступяць у сілу пасля перазагрузкі.</string>
+    <string name="module_removing_title">Модуль будзе выдалены</string>
+    <string name="module_removing_text">zygisk-detach пазначаны на выдаленне ў мэнэджары root. Пасля перазагрузкі адвязка перастане працаваць.</string>
+    <string name="module_zygisk_off_title">Zygisk выключаны</string>
+    <string name="module_zygisk_off_text">Уключыце Zygisk у наладах Magisk і перазагрузіцеся, інакш модуль не зможа хаваць абнаўленні ад Play Store.</string>
+    <string name="module_outdated_title">Даступна абнаўленне модуля</string>
+    <string name="module_outdated_text">Выйшаў zygisk-detach %1$s, у вас %2$s.</string>
+    <string name="module_action_enable">Уключыць</string>
+    <string name="module_action_reboot">Перазагрузіць</string>
+    <string name="module_action_keep">Пакінуць модуль</string>
+    <string name="module_action_releases">Адкрыць рэлізы</string>
+    <string name="module_action_later">Пазней</string>
+    <string name="module_action_download">Спампаваць модуль</string>
+    <string name="module_action_retry">Праверыць зноў</string>
+    <string name="module_reboot_confirm_title">Перазагрузіць зараз?</string>
+    <string name="module_reboot_confirm_text">Прылада адразу перазагрузіцца. Захавайце тое, што адкрыта ў іншых праграмах.</string>
 </resources>

@@ -64,4 +64,25 @@
     <string name="backup_imported_nothing">Alle Apps aus der Datei sind bereits getrennt</string>
     <string name="backup_empty">Die Liste ist leer, nichts zu exportieren</string>
     <string name="backup_invalid">Diese Datei ist keine Trennliste</string>
+    <string name="module_missing_text">Diese App bearbeitet nur die Trennliste. Play Store wird vom Modul zygisk-detach gepatcht: Installiere es in Magisk, KernelSU oder APatch und starte neu.</string>
+    <string name="module_installed_reboot_text">Das Modul zygisk-detach ist installiert und wird nach einem Neustart aktiv.</string>
+    <string name="module_disabled_title">Das Modul ist ausgeschaltet</string>
+    <string name="module_disabled_text">zygisk-detach ist im Root-Manager deaktiviert, daher aktualisiert Play Store getrennte Apps weiterhin.</string>
+    <string name="module_reboot_title">Neustart erforderlich</string>
+    <string name="module_reboot_text">Das Modul wurde installiert, aktualisiert oder eingeschaltet. Die Änderung wirkt nach einem Neustart.</string>
+    <string name="module_removing_title">Das Modul wird entfernt</string>
+    <string name="module_removing_text">zygisk-detach ist im Root-Manager zum Entfernen markiert. Nach einem Neustart funktioniert das Trennen nicht mehr.</string>
+    <string name="module_zygisk_off_title">Zygisk ist aus</string>
+    <string name="module_zygisk_off_text">Schalte Zygisk in den Magisk-Einstellungen ein und starte neu, sonst kann das Modul Updates nicht vor Play Store verbergen.</string>
+    <string name="module_outdated_title">Modul-Update verfügbar</string>
+    <string name="module_outdated_text">zygisk-detach %1$s ist erschienen, installiert ist %2$s.</string>
+    <string name="module_action_enable">Einschalten</string>
+    <string name="module_action_reboot">Neu starten</string>
+    <string name="module_action_keep">Modul behalten</string>
+    <string name="module_action_releases">Releases öffnen</string>
+    <string name="module_action_later">Später</string>
+    <string name="module_action_download">Modul herunterladen</string>
+    <string name="module_action_retry">Erneut prüfen</string>
+    <string name="module_reboot_confirm_title">Jetzt neu starten?</string>
+    <string name="module_reboot_confirm_text">Das Gerät startet sofort neu. Sichere vorher, was in anderen Apps offen ist.</string>
 </resources>

@@ -64,4 +64,25 @@
     <string name="backup_imported_nothing">Tutte le app del file sono già scollegate</string>
     <string name="backup_empty">L\'elenco è vuoto, niente da esportare</string>
     <string name="backup_invalid">Questo file non è un elenco di scollegamento</string>
+    <string name="module_missing_text">Questa app modifica solo l\'elenco di scollegamento. Play Store viene modificato dal modulo zygisk-detach: installalo in Magisk, KernelSU o APatch e riavvia.</string>
+    <string name="module_installed_reboot_text">Il modulo zygisk-detach è installato e sarà attivo dopo il riavvio.</string>
+    <string name="module_disabled_title">Il modulo è disattivato</string>
+    <string name="module_disabled_text">zygisk-detach è disattivato nel gestore root, quindi Play Store aggiorna ancora le app scollegate.</string>
+    <string name="module_reboot_title">Riavvia per applicare</string>
+    <string name="module_reboot_text">Il modulo è stato installato, aggiornato o attivato. La modifica avrà effetto dopo il riavvio.</string>
+    <string name="module_removing_title">Il modulo verrà rimosso</string>
+    <string name="module_removing_text">zygisk-detach è contrassegnato per la rimozione nel gestore root. Dopo il riavvio lo scollegamento smetterà di funzionare.</string>
+    <string name="module_zygisk_off_title">Zygisk è disattivato</string>
+    <string name="module_zygisk_off_text">Attiva Zygisk nelle impostazioni di Magisk e riavvia, altrimenti il modulo non può nascondere gli aggiornamenti a Play Store.</string>
+    <string name="module_outdated_title">Aggiornamento del modulo disponibile</string>
+    <string name="module_outdated_text">È uscito zygisk-detach %1$s, hai la %2$s.</string>
+    <string name="module_action_enable">Attiva</string>
+    <string name="module_action_reboot">Riavvia</string>
+    <string name="module_action_keep">Mantieni modulo</string>
+    <string name="module_action_releases">Apri release</string>
+    <string name="module_action_later">Più tardi</string>
+    <string name="module_action_download">Scarica modulo</string>
+    <string name="module_action_retry">Controlla di nuovo</string>
+    <string name="module_reboot_confirm_title">Riavviare ora?</string>
+    <string name="module_reboot_confirm_text">Il dispositivo si riavvierà subito. Salva prima ciò che è aperto in altre app.</string>
 </resources>
