@@ -74,7 +74,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.TonalToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.LaunchedEffect
@@ -453,7 +453,7 @@ private fun LazyListScope.appearanceGroup() {
                 ) {
                     val modes = ThemeMode.entries
                     modes.forEachIndexed { index, mode ->
-                        ToggleButton(
+                        TonalToggleButton(
                             checked = AppTheme.mode == mode,
                             onCheckedChange = { AppTheme.updateMode(mode) },
                             shapes = when (index) {
@@ -461,9 +461,6 @@ private fun LazyListScope.appearanceGroup() {
                                 modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
-                            colors = ToggleButtonDefaults.toggleButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            ),
                             // icon above the label leaves the whole width for long words
                             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
                             modifier = Modifier
