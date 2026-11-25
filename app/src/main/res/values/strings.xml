@@ -180,14 +180,12 @@
     <string name="presets_detected">Patched by root modules</string>
     <string name="presets_detected_desc">Found in installed modules: %1$s</string>
     <string name="preset_category_morphe">Morphe patches</string>
-    <string name="preset_morphe">YouTube and Reddit</string>
-    <string name="preset_morphe_desc">Official Morphe patches: YouTube, YouTube Music, Reddit</string>
     <string name="preset_morphe_social">Social and messengers</string>
-    <string name="preset_morphe_social_desc">X and Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
     <string name="preset_morphe_media">Music and video</string>
-    <string name="preset_morphe_media_desc">Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
     <string name="preset_morphe_tools">Photo and tools</string>
     <string name="preset_morphe_tools_desc">Google Photos, Recorder, Microsoft Lens, Photomath, Photoshop Mix and more (De-Vanced)</string>
     <string name="preset_morphe_other">Sport, news and more</string>
     <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
+    <string name="preset_morphe_social_desc">Reddit (Morphe), X, Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
+    <string name="preset_morphe_media_desc">YouTube, YouTube Music (Morphe), Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
 </resources>

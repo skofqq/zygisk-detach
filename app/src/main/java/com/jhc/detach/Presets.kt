@@ -95,19 +95,11 @@ internal enum class BuiltinPreset(
     ),
     // compatible packages from the patches-list.json of MorpheApp/morphe-patches, crimera/piko
     // and RookieEnough/De-Vanced (Morphe patch bundles)
-    MORPHE(
-        R.string.preset_morphe, R.string.preset_morphe_desc, PresetCategory.MORPHE,
-        icon = R.drawable.ic_play_circle,
-        packages = listOf(
-            "com.google.android.youtube",
-            "com.google.android.apps.youtube.music",
-            "com.reddit.frontpage",
-        ),
-    ),
     MORPHE_SOCIAL(
         R.string.preset_morphe_social, R.string.preset_morphe_social_desc, PresetCategory.MORPHE,
         icon = R.drawable.ic_forum,
         packages = listOf(
+            "com.reddit.frontpage",
             "com.twitter.android",
             "com.instagram.android",
             "com.facebook.katana",
@@ -121,6 +113,8 @@ internal enum class BuiltinPreset(
         R.string.preset_morphe_media, R.string.preset_morphe_media_desc, PresetCategory.MORPHE,
         icon = R.drawable.ic_music_note,
         packages = listOf(
+            "com.google.android.youtube",
+            "com.google.android.apps.youtube.music",
             "com.amazon.mp3",
             "com.bandcamp.android",
             "com.disney.disneyplus",
