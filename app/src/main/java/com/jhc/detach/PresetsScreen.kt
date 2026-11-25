@@ -135,7 +135,7 @@ private class EditorRequest(val id: String?, val name: String, val packages: Lis
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PresetsScreen(
+internal fun PresetsScreen(
     apps: List<DetachedApp>,
     icons: AppIcons,
     /** Apps patched through root modules, found when the list loaded. */
