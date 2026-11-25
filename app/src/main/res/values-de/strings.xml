@@ -9,7 +9,7 @@
     <string name="filter_not_installed">Nicht installiert</string>
     <string name="error_no_root">Root-Zugriff erforderlich</string>
     <string name="error_no_module">Das Modul zygisk-detach ist nicht installiert</string>
-    <string name="not_installed">%1$s · nicht installiert</string>
+    <string name="not_installed">nicht installiert · %1$s</string>
     <string name="action_detach">Trennen</string>
     <string name="action_clear">Löschen</string>
     <string name="action_reload">Neu laden</string>
@@ -174,4 +174,9 @@
         <item quantity="one">%d App markiert. Tippe auf ✓, um sie abzukoppeln</item>
         <item quantity="other">%d Apps markiert. Tippe auf ✓, um sie abzukoppeln</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">YouTube, YouTube Music und Reddit, gepatcht mit Morphe</string>
+    <string name="presets_detected_section">Auf diesem Gerät</string>
+    <string name="presets_detected">Von Root-Modulen gepatcht</string>
+    <string name="presets_detected_desc">In installierten Modulen gefunden: %1$s</string>
 </resources>

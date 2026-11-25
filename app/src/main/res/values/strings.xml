@@ -11,7 +11,7 @@
     <string name="filter_not_installed">Not installed</string>
     <string name="error_no_root">Root access is required</string>
     <string name="error_no_module">The zygisk-detach module is not installed</string>
-    <string name="not_installed">%1$s · not installed</string>
+    <string name="not_installed">not installed · %1$s</string>
     <string name="action_detach">Detach</string>
     <string name="action_clear">Clear</string>
     <string name="action_reload">Reload</string>
@@ -176,4 +176,9 @@
         <item quantity="one">Marked %d app. Tap ✓ to detach it</item>
         <item quantity="other">Marked %d apps. Tap ✓ to detach them</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">YouTube, YouTube Music and Reddit patched with Morphe</string>
+    <string name="presets_detected_section">On this device</string>
+    <string name="presets_detected">Patched by root modules</string>
+    <string name="presets_detected_desc">Found in installed modules: %1$s</string>
 </resources>

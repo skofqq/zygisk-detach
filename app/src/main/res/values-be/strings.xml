@@ -9,7 +9,7 @@
     <string name="filter_not_installed">Не ўсталяваныя</string>
     <string name="error_no_root">Патрэбны root-доступ</string>
     <string name="error_no_module">Модуль zygisk-detach не ўсталяваны</string>
-    <string name="not_installed">%1$s · не ўсталявана</string>
+    <string name="not_installed">не ўсталявана · %1$s</string>
     <string name="action_detach">Адвязаць</string>
     <string name="action_clear">Ачысціць</string>
     <string name="action_reload">Абнавіць</string>
@@ -184,4 +184,9 @@
         <item quantity="many">Пазначана %d праграм. Націсніце ✓, каб адвязаць</item>
         <item quantity="other">Пазначана %d праграмы. Націсніце ✓, каб адвязаць</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">YouTube, YouTube Music і Reddit з патчамі Morphe</string>
+    <string name="presets_detected_section">На гэтай прыладзе</string>
+    <string name="presets_detected">Прапатчаны root-модулямі</string>
+    <string name="presets_detected_desc">Знойдзена ва ўсталяваных модулях: %1$s</string>
 </resources>

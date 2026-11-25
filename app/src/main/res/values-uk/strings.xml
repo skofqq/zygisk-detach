@@ -9,7 +9,7 @@
     <string name="filter_not_installed">Не встановлені</string>
     <string name="error_no_root">Потрібен root-доступ</string>
     <string name="error_no_module">Модуль zygisk-detach не встановлено</string>
-    <string name="not_installed">%1$s · не встановлено</string>
+    <string name="not_installed">не встановлено · %1$s</string>
     <string name="action_detach">Відв’язати</string>
     <string name="action_clear">Очистити</string>
     <string name="action_reload">Оновити</string>
@@ -184,4 +184,9 @@
         <item quantity="many">Позначено %d застосунків. Натисніть ✓, щоб відв’язати</item>
         <item quantity="other">Позначено %d застосунки. Натисніть ✓, щоб відв’язати</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">YouTube, YouTube Music і Reddit із патчами Morphe</string>
+    <string name="presets_detected_section">На цьому пристрої</string>
+    <string name="presets_detected">Пропатчені root-модулями</string>
+    <string name="presets_detected_desc">Знайдено у встановлених модулях: %1$s</string>
 </resources>

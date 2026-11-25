@@ -9,7 +9,7 @@
     <string name="filter_not_installed">No instaladas</string>
     <string name="error_no_root">Se requiere acceso root</string>
     <string name="error_no_module">El módulo zygisk-detach no está instalado</string>
-    <string name="not_installed">%1$s · no instalada</string>
+    <string name="not_installed">no instalada · %1$s</string>
     <string name="action_detach">Desvincular</string>
     <string name="action_clear">Borrar</string>
     <string name="action_reload">Recargar</string>
@@ -179,4 +179,9 @@
         <item quantity="many">%d apps marcadas. Pulsa ✓ para desvincularlas</item>
         <item quantity="other">%d apps marcadas. Pulsa ✓ para desvincularlas</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">YouTube, YouTube Music y Reddit parcheadas con Morphe</string>
+    <string name="presets_detected_section">En este dispositivo</string>
+    <string name="presets_detected">Parcheadas por módulos root</string>
+    <string name="presets_detected_desc">Encontradas en los módulos instalados: %1$s</string>
 </resources>

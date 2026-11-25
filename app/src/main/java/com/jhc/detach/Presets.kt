@@ -42,6 +42,16 @@ internal enum class BuiltinPreset(
             "com.google.android.apps.youtube.music",
         ),
     ),
+    MORPHE(
+        R.string.preset_morphe, R.string.preset_morphe_desc, PresetCategory.PATCHED,
+        icon = R.drawable.ic_play_circle,
+        // root installs mount the patched APK over the original, so the package names stay the same
+        packages = listOf(
+            "com.google.android.youtube",
+            "com.google.android.apps.youtube.music",
+            "com.reddit.frontpage",
+        ),
+    ),
     SOCIAL(
         R.string.preset_social, R.string.preset_social_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_forum,
@@ -120,6 +130,56 @@ internal enum class BuiltinPreset(
             "com.ss.android.ugc.aweme",
         ),
     ),
+}
+
+/** An app that a root module replaces with its own (patched) APK. */
+internal class ModuleApp(val packageName: String, val moduleName: String)
+
+/**
+ * Finds apps patched through root modules (ReVanced, Morphe, RVX, revanced-magisk-module and the
+ * like). Such a module ships an APK and bind-mounts it over the installed app, so its scripts or
+ * config name the package. Heuristic: only active modules that carry an .apk file are looked at,
+ * and only package names of apps installed here count.
+ */
+internal object ModuleScan {
+    /** Packages that module scripts mention for other reasons (Play Store, GMS, microG). */
+    private val IGNORED = setOf(
+        "com.android.vending",
+        "com.google.android.gms",
+        "com.google.android.gsf",
+        "app.revanced.android.gms",
+        "com.mgoogle.android.gms",
+        "app.morphe.android.gms",
+        "com.android.shell",
+    )
+
+    fun scan(installed: Set<String>): List<ModuleApp> {
+        val script = """
+            for d in /data/adb/modules/*; do
+              [ -d "${'$'}d" ] || continue
+              id=${'$'}{d##*/}
+              [ "${'$'}id" = "$MODULE_ID" ] && continue
+              [ -f "${'$'}d/disable" ] || [ -f "${'$'}d/remove" ] && continue
+              [ -n "${'$'}(find "${'$'}d" -maxdepth 3 -name '*.apk' 2>/dev/null | head -n 1)" ] || continue
+              name=${'$'}(sed -n 's/^name=//p' "${'$'}d/module.prop" 2>/dev/null | head -n 1)
+              for f in module.prop config service.sh post-fs-data.sh customize.sh uninstall.sh; do
+                [ -f "${'$'}d/${'$'}f" ] && head -c 65536 "${'$'}d/${'$'}f"
+                echo
+              done | grep -oE '[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+' | sort -u | while read -r p; do
+                echo "pkg|${'$'}{name:-${'$'}id}|${'$'}p"
+              done
+            done
+        """.trimIndent()
+        val found = LinkedHashMap<String, ModuleApp>()
+        for (line in runShell(script).out.splitn()) {
+            val parts = line.split('|')
+            if (parts.size != 3 || parts[0] != "pkg") continue
+            val pkg = parts[2]
+            if (pkg in IGNORED || pkg !in installed || pkg in found) continue
+            found[pkg] = ModuleApp(pkg, parts[1].trim())
+        }
+        return found.values.toList()
+    }
 }
 
 /** A preset made by the user. */

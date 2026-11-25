@@ -9,7 +9,7 @@
     <string name="filter_not_installed">Орнатылмаған</string>
     <string name="error_no_root">Root рұқсаты қажет</string>
     <string name="error_no_module">zygisk-detach модулі орнатылмаған</string>
-    <string name="not_installed">%1$s · орнатылмаған</string>
+    <string name="not_installed">орнатылмаған · %1$s</string>
     <string name="action_detach">Ажырату</string>
     <string name="action_clear">Тазалау</string>
     <string name="action_reload">Жаңарту</string>
@@ -174,4 +174,9 @@
         <item quantity="one">%d қолданба белгіленді. Ажырату үшін ✓ басыңыз</item>
         <item quantity="other">%d қолданба белгіленді. Ажырату үшін ✓ басыңыз</item>
     </plurals>
+    <string name="preset_morphe">Morphe</string>
+    <string name="preset_morphe_desc">Morphe патчтары бар YouTube, YouTube Music және Reddit</string>
+    <string name="presets_detected_section">Осы құрылғыда</string>
+    <string name="presets_detected">Root модульдерімен патчталған</string>
+    <string name="presets_detected_desc">Орнатылған модульдерден табылды: %1$s</string>
 </resources>

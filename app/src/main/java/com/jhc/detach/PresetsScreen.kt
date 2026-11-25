@@ -81,6 +81,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -104,7 +105,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** What the preset sheet and cards show, for both kinds of presets. */
 private class PresetView(
@@ -114,6 +117,8 @@ private class PresetView(
     val packages: List<String>,
     val builtin: BuiltinPreset? = null,
     val custom: CustomPreset? = null,
+    /** Found among the installed root modules. */
+    val detected: Boolean = false,
 )
 
 @Composable
@@ -183,6 +188,31 @@ fun PresetsScreen(
     }
     val builtinViews = BuiltinPreset.entries.map { it.view() }
 
+    // apps patched through root modules, found once per opening of the page
+    var moduleApps by remember { mutableStateOf<List<ModuleApp>>(emptyList()) }
+    LaunchedEffect(apps) {
+        val installed = apps.filter { it.installed }.mapTo(HashSet()) { it.packageName }
+        moduleApps = withContext(Dispatchers.IO) {
+            try {
+                ModuleScan.scan(installed)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+    }
+    val detectedView = moduleApps.takeIf { it.isNotEmpty() }?.let { found ->
+        PresetView(
+            key = "detected",
+            title = stringResource(R.string.presets_detected),
+            description = stringResource(
+                R.string.presets_detected_desc,
+                found.map { it.moduleName }.distinct().joinToString(", ")
+            ),
+            packages = found.map { it.packageName },
+            detected = true,
+        )
+    }
+
     Box {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -249,6 +279,10 @@ fun PresetsScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
+                if (detectedView != null) {
+                    sectionTitle("detected", R.string.presets_detected_section)
+                    presetCards(listOf(detectedView), byPackage, icons) { opened = it }
+                }
                 sectionTitle("mine", R.string.presets_mine)
                 if (customViews.isEmpty()) {
                     item(key = "mine-empty") {
@@ -472,6 +506,7 @@ private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
             .clip(shape)
             .background(
                 when {
+                    preset.detected -> MaterialTheme.colorScheme.primary
                     builtin == null -> MaterialTheme.colorScheme.tertiaryContainer
                     region -> MaterialTheme.colorScheme.secondaryContainer
                     else -> MaterialTheme.colorScheme.primaryContainer
@@ -479,6 +514,11 @@ private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
             )
     ) {
         when {
+            preset.detected -> Icon(
+                painterResource(R.drawable.ic_extension),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
             builtin?.emoji != null -> Text(builtin.emoji, style = MaterialTheme.typography.titleLarge)
             builtin != null -> Icon(
                 painterResource(builtin.icon),

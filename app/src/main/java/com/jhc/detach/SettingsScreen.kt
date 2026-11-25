@@ -67,6 +67,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -289,8 +290,6 @@ fun SettingsScreen(onBack: () -> Unit, onListImported: () -> Unit) {
                 HeroCard(
                     version = version,
                     module = module,
-                    update = update,
-                    onUpdateClick = updates.first().onClick,
                 )
             }
             appearanceGroup()
@@ -318,8 +317,6 @@ fun SettingsScreen(onBack: () -> Unit, onListImported: () -> Unit) {
 private fun HeroCard(
     version: String,
     module: ModuleStatus?,
-    update: UpdateState,
-    onUpdateClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val icon = remember {
@@ -340,7 +337,7 @@ private fun HeroCard(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(MaterialShapes.Cookie9Sided.toShape())
-                        .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                        .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Image(icon, contentDescription = null, modifier = Modifier.size(60.dp))
                 }
@@ -370,7 +367,6 @@ private fun HeroCard(
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.6f),
-                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -388,23 +384,9 @@ private fun HeroCard(
                         Text(
                             moduleText,
                             style = MaterialTheme.typography.labelLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-                }
-                Spacer(Modifier.width(8.dp))
-                val busy = update is UpdateState.Checking || update is UpdateState.Downloading ||
-                        update is UpdateState.Installing
-                Button(onClick = onUpdateClick, enabled = !busy) {
-                    Text(
-                        stringResource(
-                            if (update is UpdateState.Available) R.string.update_install_short
-                            else R.string.update_check_short
-                        ),
-                        maxLines = 1,
-                    )
                 }
             }
         }
@@ -479,17 +461,30 @@ private fun LazyListScope.appearanceGroup() {
                                 modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
+                            colors = ToggleButtonDefaults.toggleButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
+                            // icon above the label leaves the whole width for long words
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
                             modifier = Modifier
                                 .weight(1f)
+                                .heightIn(min = 64.dp)
                                 .semantics { role = Role.RadioButton }
                         ) {
-                            Icon(
-                                painterResource(mode.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(ToggleButtonDefaults.IconSize)
-                            )
-                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                            Text(stringResource(mode.label), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    painterResource(mode.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                                )
+                                Text(
+                                    stringResource(mode.label),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                     }
                 }

@@ -451,7 +451,7 @@ private fun BottomBar(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         modifier = Modifier
             .fillMaxWidth()
             // don't let taps in the gaps around the bar reach the list rows underneath
@@ -479,7 +479,7 @@ private fun BottomBar(
             } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SectionsPill(source, onSourceChange, Modifier.weight(1f, fill = false))
                     Surface(
@@ -488,7 +488,7 @@ private fun BottomBar(
                         color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         shadowElevation = 6.dp,
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(56.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
@@ -510,7 +510,7 @@ private fun BottomBar(
                     onClick = onDetach,
                     shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(56.dp)
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_detach))
                 }
@@ -548,8 +548,8 @@ private fun SectionsPill(source: AppSource, onSourceChange: (AppSource) -> Unit,
                             role = Role.Tab,
                             onClick = { onSourceChange(item) }
                         )
-                        .height(52.dp)
-                        .padding(horizontal = 16.dp)
+                        .height(44.dp)
+                        .padding(horizontal = 12.dp)
                 ) {
                     AnimatedVisibility(
                         visible = selected,
@@ -560,16 +560,17 @@ private fun SectionsPill(source: AppSource, onSourceChange: (AppSource) -> Unit,
                             Icon(
                                 item.icon,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(Modifier.size(8.dp))
+                            Spacer(Modifier.size(6.dp))
                         }
                     }
                     Text(
                         stringResource(item.label),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -630,7 +631,7 @@ private fun SearchPill(query: String, onQueryChange: (String) -> Unit, onClose: 
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(56.dp)
                 .focusRequester(focusRequester)
         )
     }
