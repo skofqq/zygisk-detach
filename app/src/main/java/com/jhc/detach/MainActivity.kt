@@ -7,15 +7,16 @@ import android.os.Bundle
 import android.os.Process
 import android.os.UserManager
 import androidx.activity.ComponentActivity
-import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
-import androidx.activity.compose.PredictiveBackHandler
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -23,8 +24,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -35,10 +34,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,7 +54,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
@@ -97,6 +103,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -106,8 +114,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -115,7 +126,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.jhc.detach.ui.theme.AppTheme
 import com.jhc.detach.ui.theme.ZygiskdetachTheme
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -136,6 +146,20 @@ class DetachedApp(
 
     /** Installed in the work profile or private space (possibly in ours too). */
     var otherProfile = false
+}
+
+/** App icons, loaded once and shared by the list and the presets. */
+class AppIcons(private val packageManager: PackageManager, val uninstalled: ImageBitmap) {
+    private val cache = HashMap<String, ImageBitmap>()
+
+    fun of(app: DetachedApp): ImageBitmap = app.profileIcon ?: cache.getOrPut(app.packageName) {
+        if (!app.installed) uninstalled
+        else try {
+            packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
+        } catch (_: Exception) {
+            uninstalled
+        }
+    }
 }
 
 /** Main sections, switched from the bottom bar. */
@@ -407,12 +431,21 @@ private fun FilterChips(selected: Set<AppFilter>, onToggle: (AppFilter) -> Unit)
     }
 }
 
-/** Google Photos style bottom bar: a floating pill with sections plus a separate round action. */
+/**
+ * Google Photos style bottom bar: a floating pill with sections, a round search button and, when
+ * there is something to apply, the Detach button. Search turns the pill into a field right above
+ * the keyboard, where the thumb already is.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BottomBar(
     source: AppSource,
     onSourceChange: (AppSource) -> Unit,
+    searching: Boolean,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearchOpen: () -> Unit,
+    onSearchClose: () -> Unit,
     pendingChanges: Int,
     onDetach: () -> Unit,
 ) {
@@ -423,60 +456,40 @@ private fun BottomBar(
             .fillMaxWidth()
             // don't let taps in the gaps around the bar reach the list rows underneath
             .pointerInput(Unit) { detectTapGestures { } }
-            .navigationBarsPadding()
+            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            shadowElevation = 6.dp,
-            modifier = Modifier.weight(1f, fill = false)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(6.dp)
-            ) {
-                AppSource.entries.forEach { item ->
-                    val selected = item == source
-                    val container by animateColorAsState(
-                        if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec()
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(container)
-                            .selectable(
-                                selected = selected,
-                                role = Role.Tab,
-                                onClick = { onSourceChange(item) }
-                            )
-                            .height(52.dp)
-                            .padding(horizontal = 16.dp)
+        AnimatedContent(
+            targetState = searching,
+            transitionSpec = {
+                (fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
+                        scaleIn(MaterialTheme.motionScheme.defaultSpatialSpec(), initialScale = 0.92f))
+                    .togetherWith(fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()))
+                    .using(SizeTransform(clip = false))
+            },
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.weight(1f, fill = searching),
+            label = "bottom-bar",
+        ) { isSearching ->
+            if (isSearching) {
+                SearchPill(query, onQueryChange, onSearchClose)
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    SectionsPill(source, onSourceChange, Modifier.weight(1f, fill = false))
+                    Surface(
+                        onClick = onSearchOpen,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.size(64.dp)
                     ) {
-                        AnimatedVisibility(
-                            visible = selected,
-                            enter = expandHorizontally() + fadeIn(),
-                            exit = shrinkHorizontally() + fadeOut()
-                        ) {
-                            Row {
-                                Icon(
-                                    item.icon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Spacer(Modifier.size(8.dp))
-                            }
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
                         }
-                        Text(
-                            stringResource(item.label),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
             }
@@ -503,41 +516,128 @@ private fun BottomBar(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
-    val focusManager = LocalFocusManager.current
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = { Text(stringResource(R.string.search_hint)) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-        trailingIcon = {
-            AnimatedVisibility(query.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
-                IconButton(onClick = {
-                    onQueryChange("")
-                    focusManager.clearFocus()
-                }) {
-                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_clear))
+private fun SectionsPill(source: AppSource, onSourceChange: (AppSource) -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shadowElevation = 6.dp,
+        modifier = modifier
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(6.dp)
+        ) {
+            AppSource.entries.forEach { item ->
+                val selected = item == source
+                val container by animateColorAsState(
+                    if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec()
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(container)
+                        .selectable(
+                            selected = selected,
+                            role = Role.Tab,
+                            onClick = { onSourceChange(item) }
+                        )
+                        .height(52.dp)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    AnimatedVisibility(
+                        visible = selected,
+                        enter = expandHorizontally() + fadeIn(),
+                        exit = shrinkHorizontally() + fadeOut()
+                    ) {
+                        Row {
+                            Icon(
+                                item.icon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Spacer(Modifier.size(8.dp))
+                        }
+                    }
+                    Text(
+                        stringResource(item.label),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
-        },
-        singleLine = true,
+        }
+    }
+}
+
+/** The search field the pill turns into: focused with the keyboard up as soon as it opens. */
+@Composable
+private fun SearchPill(query: String, onQueryChange: (String) -> Unit, onClose: () -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        keyboard?.show()
+    }
+    Surface(
         shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shadowElevation = 6.dp,
         modifier = Modifier.fillMaxWidth()
-    )
+    ) {
+        TextField(
+            value = query,
+            onValueChange = onQueryChange,
+            placeholder = { Text(stringResource(R.string.search_hint), maxLines = 1) },
+            leadingIcon = {
+                IconButton(onClick = onClose) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.action_close_search)
+                    )
+                }
+            },
+            trailingIcon = {
+                AnimatedVisibility(query.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+                    IconButton(onClick = {
+                        onQueryChange("")
+                        focusRequester.requestFocus()
+                        keyboard?.show()
+                    }) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_clear))
+                    }
+                }
+            },
+            singleLine = true,
+            shape = CircleShape,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .focusRequester(focusRequester)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DetachScreen(
     packageManager: PackageManager,
-    uninstalledIcon: ImageBitmap,
+    icons: AppIcons,
     onOpenSettings: () -> Unit,
     /** Bumped when the list changed outside this screen (an import in settings). */
     externalReload: Int = 0,
@@ -563,6 +663,17 @@ private fun DetachScreen(
     val resources = LocalContext.current.resources
     val listState = rememberLazyListState()
     var source by remember { mutableStateOf(AppSource.ALL) }
+    var searching by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var showPresets by rememberSaveable { mutableStateOf(false) }
+    val closeSearch = {
+        searching = false
+        query = ""
+    }
+    // back closes the search first (the keyboard, if up, goes away before this)
+    BackHandler(enabled = searching, onBack = closeSearch)
+    // results start from the top as the query changes
+    LaunchedEffect(query) { if (searching) listState.scrollToItem(0) }
 
     val apps = (state as? LoadState.Loaded)?.apps.orEmpty()
     val module = (state as? LoadState.Loaded)?.module
@@ -621,6 +732,7 @@ private fun DetachScreen(
         }
     }
 
+    Box {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -636,6 +748,12 @@ private fun DetachScreen(
                     IconButton(onClick = { reloadKey++ }) {
                         Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_reload))
                     }
+                    if (state is LoadState.Loaded) IconButton(onClick = { showPresets = true }) {
+                        Icon(
+                            painterResource(R.drawable.ic_bookmarks),
+                            contentDescription = stringResource(R.string.presets)
+                        )
+                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
                     }
@@ -649,6 +767,11 @@ private fun DetachScreen(
                 BottomBar(
                     source = source,
                     onSourceChange = { source = it },
+                    searching = searching,
+                    query = query,
+                    onQueryChange = { query = it },
+                    onSearchOpen = { searching = true },
+                    onSearchClose = closeSearch,
                     pendingChanges = apps.count { it.detached != (it.packageName in applied) },
                     onDetach = {
                         scope.launch {
@@ -706,15 +829,32 @@ private fun DetachScreen(
                 apps = s.apps,
                 listState = listState,
                 innerPadding = innerPadding,
-                packageManager = packageManager,
-                uninstalledIcon = uninstalledIcon,
-                source = source,
+                icons = icons,
+                // search looks through every app, whatever section was open
+                source = if (searching) AppSource.ALL else source,
+                query = if (searching) query else "",
                 applied = applied,
                 notices = notices,
                 onNoticeAction = onNoticeAction,
                 onNoticeDismiss = onNoticeDismiss,
             )
         }
+    }
+    OverlayPage(visible = showPresets, onBack = { showPresets = false }) {
+        PresetsScreen(
+            apps = apps,
+            icons = icons,
+            onBack = { showPresets = false },
+            onMarked = { count ->
+                showPresets = false
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        resources.getQuantityString(R.plurals.snackbar_marked, count, count)
+                    )
+                }
+            },
+        )
+    }
     }
 }
 
@@ -723,22 +863,21 @@ private fun AppsList(
     apps: List<DetachedApp>,
     listState: LazyListState,
     innerPadding: PaddingValues,
-    packageManager: PackageManager,
-    uninstalledIcon: ImageBitmap,
+    icons: AppIcons,
     source: AppSource,
+    query: String,
     applied: Set<String>,
     notices: List<ModuleNotice>,
     onNoticeAction: (ModuleNotice) -> Unit,
     onNoticeDismiss: (ModuleNotice) -> Unit,
 ) {
-    var query by remember { mutableStateOf("") }
     var filters by remember { mutableStateOf(emptySet<AppFilter>()) }
-    val iconCache = remember { HashMap<String, ImageBitmap>() }
+    val search = query.trim()
 
     val shown = apps.filter { app ->
-        source.matches(app) && filters.all { it.matches(app) } && (query.isEmpty() ||
-                app.packageName.contains(query, ignoreCase = true) ||
-                app.label.contains(query, ignoreCase = true))
+        source.matches(app) && filters.all { it.matches(app) } && (search.isEmpty() ||
+                app.packageName.contains(search, ignoreCase = true) ||
+                app.label.contains(search, ignoreCase = true))
     }
     // Detached apps always go first, as their own group. Grouping follows the applied state so
     // rows don't jump around while switches are being flipped.
@@ -759,8 +898,6 @@ private fun AppsList(
         item(key = "header") {
             Column {
                 ModuleNotices(notices, onNoticeAction, onNoticeDismiss)
-                SearchField(query) { query = it }
-                Spacer(Modifier.height(8.dp))
                 FilterChips(filters) { f ->
                     filters = if (f in filters) filters - f
                     else filters.filterTo(HashSet()) { it.group != f.group } + f
@@ -778,11 +915,8 @@ private fun AppsList(
                 )
             }
         }
-        appGroup(R.string.group_detached, detachedGroup, iconCache, packageManager, uninstalledIcon)
-        appGroup(
-            if (detachedGroup.isEmpty()) 0 else R.string.group_other,
-            otherGroup, iconCache, packageManager, uninstalledIcon
-        )
+        appGroup(R.string.group_detached, detachedGroup, icons)
+        appGroup(if (detachedGroup.isEmpty()) 0 else R.string.group_other, otherGroup, icons)
     }
 }
 
@@ -802,6 +936,7 @@ class MainActivity : ComponentActivity() {
         // ask for root in the background while the splash plays; loadApps() then reuses the shell
         Shell.getShell { }
         AppTheme.init(this)
+        PresetStore.init(this)
         Updater.cleanUp(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -821,53 +956,19 @@ class MainActivity : ComponentActivity() {
             ZygiskdetachTheme(darkTheme = dark) {
                 var showSettings by rememberSaveable { mutableStateOf(false) }
                 var listImports by remember { mutableIntStateOf(0) }
-                // predictive back: the settings page shrinks toward the swipe and reveals the list
-                val backProgress = remember { Animatable(0f) }
-                var swipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
-                LaunchedEffect(showSettings) { if (showSettings) backProgress.snapTo(0f) }
-                PredictiveBackHandler(enabled = showSettings) { events ->
-                    try {
-                        events.collect { event ->
-                            swipeEdge = event.swipeEdge
-                            backProgress.snapTo(event.progress)
-                        }
-                        showSettings = false
-                    } catch (_: CancellationException) {
-                        backProgress.animateTo(0f)
-                    }
-                }
-                // settings slide over the main screen so its state (pending switches) survives
+                val icons = remember { AppIcons(packageManager, uninstalledIcon) }
                 Box {
                     DetachScreen(
                         packageManager,
-                        uninstalledIcon,
+                        icons,
                         onOpenSettings = { showSettings = true },
                         externalReload = listImports,
                     )
-                    AnimatedVisibility(
-                        visible = showSettings,
-                        enter = slideInHorizontally { it } + fadeIn(),
-                        exit = slideOutHorizontally { it } + fadeOut()
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.background,
-                            modifier = Modifier.graphicsLayer {
-                                val progress = backProgress.value
-                                val scale = 1f - 0.1f * progress
-                                scaleX = scale
-                                scaleY = scale
-                                // drift away from the edge the swipe started at, by up to 8% of the width
-                                val direction = if (swipeEdge == BackEventCompat.EDGE_RIGHT) -1 else 1
-                                translationX = direction * progress * size.width * 0.08f
-                                shape = RoundedCornerShape(32.dp * progress)
-                                clip = progress > 0f
-                            }
-                        ) {
-                            SettingsScreen(
-                                onBack = { showSettings = false },
-                                onListImported = { listImports++ },
-                            )
-                        }
+                    OverlayPage(visible = showSettings, onBack = { showSettings = false }) {
+                        SettingsScreen(
+                            onBack = { showSettings = false },
+                            onListImported = { listImports++ },
+                        )
                     }
                 }
             }
@@ -878,9 +979,7 @@ class MainActivity : ComponentActivity() {
 private fun LazyListScope.appGroup(
     @StringRes title: Int,
     group: List<DetachedApp>,
-    iconCache: HashMap<String, ImageBitmap>,
-    packageManager: PackageManager,
-    uninstalledIcon: ImageBitmap,
+    icons: AppIcons,
 ) {
     if (group.isEmpty()) return
     if (title != 0) {
@@ -894,18 +993,10 @@ private fun LazyListScope.appGroup(
         }
     }
     itemsIndexed(group, key = { _, app -> app.packageName }) { index, app ->
-        val icon = app.profileIcon ?: iconCache.getOrPut(app.packageName) {
-            if (!app.installed) uninstalledIcon
-            else try {
-                packageManager.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
-            } catch (_: Exception) {
-                uninstalledIcon
-            }
-        }
         AppRow(
             app = app,
             shape = segmentShape(index, group.size),
-            icon = icon,
+            icon = icons.of(app),
             modifier = Modifier.animateItem()
         )
     }

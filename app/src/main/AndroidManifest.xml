@@ -17,6 +17,7 @@
         <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:theme="@style/Theme.Zygiskdetach.Starting">
             <intent-filter>
