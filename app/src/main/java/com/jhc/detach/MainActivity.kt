@@ -459,12 +459,15 @@ private fun BottomBar(
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
+        // motion specs are read here: transitionSpec is not a composable context
+        val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+        val scaleSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+        val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
         AnimatedContent(
             targetState = searching,
             transitionSpec = {
-                (fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
-                        scaleIn(MaterialTheme.motionScheme.defaultSpatialSpec(), initialScale = 0.92f))
-                    .togetherWith(fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()))
+                (fadeIn(fadeInSpec) + scaleIn(scaleSpec, initialScale = 0.92f))
+                    .togetherWith(fadeOut(fadeOutSpec))
                     .using(SizeTransform(clip = false))
             },
             contentAlignment = Alignment.Center,

@@ -450,6 +450,7 @@ private fun LazyListScope.presetCards(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private val badgeShapes = listOf(
     MaterialShapes.Cookie9Sided,
     MaterialShapes.Clover4Leaf,
