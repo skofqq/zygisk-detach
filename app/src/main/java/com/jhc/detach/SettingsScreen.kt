@@ -74,7 +74,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.TonalToggleButton
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.LaunchedEffect
@@ -445,15 +445,23 @@ private fun LazyListScope.appearanceGroup() {
                     )
                 }
                 // M3 Expressive connected button group: the picked one rounds into a pill
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                // on a tonal track, so the unpicked buttons are visible against the card
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp)
+                ) {
                     val modes = ThemeMode.entries
                     modes.forEachIndexed { index, mode ->
-                        TonalToggleButton(
+                        ToggleButton(
                             checked = AppTheme.mode == mode,
                             onCheckedChange = { AppTheme.updateMode(mode) },
                             shapes = when (index) {
@@ -484,6 +492,7 @@ private fun LazyListScope.appearanceGroup() {
                             }
                         }
                     }
+                }
                 }
             }
         }
