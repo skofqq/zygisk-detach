@@ -77,7 +77,6 @@ internal enum class BuiltinPreset(
     GOOGLE(
         R.string.preset_google, R.string.preset_google_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_logo_google,
-        brandColors = true,
         packages = listOf(
             "com.google.android.apps.photos",
             "com.google.android.apps.magazines",
