@@ -262,7 +262,7 @@ internal fun PresetsScreen(
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding(),
                     // room for the floating button over the last card
-                    bottom = innerPadding.calculateBottomPadding() + 96.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 120.dp,
                     start = 16.dp,
                     end = 16.dp
                 ),
@@ -474,7 +474,6 @@ private fun LazyListScope.presetCards(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private val badgeShapes = listOf(
     MaterialShapes.Cookie9Sided,
     MaterialShapes.Clover4Leaf,
@@ -489,7 +488,7 @@ private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
     val builtin = preset.builtin
     val region = builtin?.emoji != null
     val brand = builtin?.brandColors == true
-    val shape: Shape = if (brand) CircleShape else badgeShapes[index % badgeShapes.size].toShape()
+    val shape: Shape = if (brand) CircleShape else MaterialShapes.Cookie9Sided.toShape()
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
