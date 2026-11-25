@@ -18,7 +18,6 @@ internal val PACKAGE_NAME = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$")
 
 internal enum class PresetCategory(@StringRes val title: Int) {
     PATCHED(R.string.preset_category_patched),
-    MORPHE(R.string.preset_category_morphe),
     REGION(R.string.preset_category_region),
 }
 
@@ -37,12 +36,22 @@ internal enum class BuiltinPreset(
     val brandColors: Boolean = false,
     val packages: List<String>,
 ) {
-    YOUTUBE(
-        R.string.preset_youtube, R.string.preset_youtube_desc, PresetCategory.PATCHED,
+    // Patch targets of ReVanced and the Morphe bundles (MorpheApp/morphe-patches, crimera/piko,
+    // RookieEnough/De-Vanced, from their patches-list.json), plus popular mods
+    MEDIA(
+        R.string.preset_media, R.string.preset_media_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_logo_youtube,
         packages = listOf(
             "com.google.android.youtube",
             "com.google.android.apps.youtube.music",
+            "com.spotify.music",
+            "com.soundcloud.android",
+            "deezer.android.app",
+            "com.amazon.mp3",
+            "com.bandcamp.android",
+            "com.disney.disneyplus",
+            "com.peacocktv.peacockandroid",
+            "tv.twitch.android.app",
         ),
     ),
     SOCIAL(
@@ -57,19 +66,12 @@ internal enum class BuiltinPreset(
             "com.ss.android.ugc.trill",
             "com.facebook.katana",
             "com.facebook.orca",
+            "com.viber.voip",
+            "com.snapchat.android",
             "com.tumblr",
             "com.pinterest",
-            "com.snapchat.android",
-        ),
-    ),
-    MUSIC(
-        R.string.preset_music, R.string.preset_music_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_logo_spotify,
-        packages = listOf(
-            "com.spotify.music",
-            "com.google.android.apps.youtube.music",
-            "com.soundcloud.android",
-            "deezer.android.app",
+            "jp.pxv.android",
+            "com.letterboxd.letterboxd",
         ),
     ),
     GOOGLE(
@@ -82,66 +84,28 @@ internal enum class BuiltinPreset(
             "com.google.android.apps.recorder",
         ),
     ),
-    OTHER(
-        R.string.preset_other, R.string.preset_other_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_extension,
-        packages = listOf(
-            "tv.twitch.android.app",
-            "com.strava",
-            "com.duolingo",
-            "com.adobe.lrmobile",
-            "net.dinglisch.android.taskerm",
-        ),
-    ),
-    // compatible packages from the patches-list.json of MorpheApp/morphe-patches, crimera/piko
-    // and RookieEnough/De-Vanced (Morphe patch bundles)
-    MORPHE_SOCIAL(
-        R.string.preset_morphe_social, R.string.preset_morphe_social_desc, PresetCategory.MORPHE,
-        icon = R.drawable.ic_forum,
-        packages = listOf(
-            "com.reddit.frontpage",
-            "com.twitter.android",
-            "com.instagram.android",
-            "com.facebook.katana",
-            "com.facebook.orca",
-            "com.viber.voip",
-            "jp.pxv.android",
-            "com.letterboxd.letterboxd",
-        ),
-    ),
-    MORPHE_MEDIA(
-        R.string.preset_morphe_media, R.string.preset_morphe_media_desc, PresetCategory.MORPHE,
-        icon = R.drawable.ic_music_note,
-        packages = listOf(
-            "com.google.android.youtube",
-            "com.google.android.apps.youtube.music",
-            "com.amazon.mp3",
-            "com.bandcamp.android",
-            "com.disney.disneyplus",
-            "com.peacocktv.peacockandroid",
-        ),
-    ),
-    MORPHE_TOOLS(
-        R.string.preset_morphe_tools, R.string.preset_morphe_tools_desc, PresetCategory.MORPHE,
+    TOOLS(
+        R.string.preset_tools, R.string.preset_tools_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_apps,
         packages = listOf(
-            "com.google.android.apps.photos",
-            "com.google.android.apps.recorder",
             "com.microsoft.office.officelens",
             "com.microblink.photomath",
             "com.adobe.photoshopmix",
+            "com.adobe.lrmobile",
             "ginlemon.iconpackstudio",
             "com.myprog.hexedit",
             "net.binarymode.android.irplus",
             "com.drinkplusplus.angulus",
             "com.nothing.smartcenter",
+            "net.dinglisch.android.taskerm",
         ),
     ),
-    MORPHE_OTHER(
-        R.string.preset_morphe_other, R.string.preset_morphe_other_desc, PresetCategory.MORPHE,
+    OTHER(
+        R.string.preset_other, R.string.preset_other_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_extension,
         packages = listOf(
             "com.strava",
+            "com.duolingo",
             "com.cricbuzz.android",
             "nl.sanomamedia.android.nu",
             "de.gmx.mobile.android.mail",
