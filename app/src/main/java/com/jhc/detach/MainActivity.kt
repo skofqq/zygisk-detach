@@ -728,6 +728,20 @@ private fun DetachScreen(
     if (confirmReboot) {
         RebootDialog(onConfirm = { confirmReboot = false; ModuleStatus.reboot() }, onDismiss = { confirmReboot = false })
     }
+    // apps patched through root modules, scanned in the background as soon as the list is there,
+    // so the presets page opens with them already in place
+    var moduleApps by remember { mutableStateOf(emptyList<ModuleApp>()) }
+    LaunchedEffect(state) {
+        val loaded = state as? LoadState.Loaded ?: return@LaunchedEffect
+        val installed = loaded.apps.filter { it.installed }.mapTo(HashSet()) { it.packageName }
+        moduleApps = withContext(Dispatchers.IO) {
+            try {
+                ModuleScan.scan(installed)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+    }
     // what the module actually has detached; pending switch changes don't count until applied
     var applied by remember { mutableStateOf(emptySet<String>()) }
     LaunchedEffect(state) {
@@ -848,6 +862,7 @@ private fun DetachScreen(
         PresetsScreen(
             apps = apps,
             icons = icons,
+            moduleApps = moduleApps,
             onBack = { showPresets = false },
             onMarked = { count ->
                 showPresets = false

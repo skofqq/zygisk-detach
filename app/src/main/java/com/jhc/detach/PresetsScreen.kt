@@ -138,6 +138,8 @@ private class EditorRequest(val id: String?, val name: String, val packages: Lis
 fun PresetsScreen(
     apps: List<DetachedApp>,
     icons: AppIcons,
+    /** Apps patched through root modules, found when the list loaded. */
+    moduleApps: List<ModuleApp>,
     onBack: () -> Unit,
     /** Apps were marked for detaching; the main screen tells how to apply them. */
     onMarked: (count: Int) -> Unit,
@@ -188,18 +190,6 @@ fun PresetsScreen(
     }
     val builtinViews = BuiltinPreset.entries.map { it.view() }
 
-    // apps patched through root modules, found once per opening of the page
-    var moduleApps by remember { mutableStateOf<List<ModuleApp>>(emptyList()) }
-    LaunchedEffect(apps) {
-        val installed = apps.filter { it.installed }.mapTo(HashSet()) { it.packageName }
-        moduleApps = withContext(Dispatchers.IO) {
-            try {
-                ModuleScan.scan(installed)
-            } catch (_: Exception) {
-                emptyList()
-            }
-        }
-    }
     val detectedView = moduleApps.takeIf { it.isNotEmpty() }?.let { found ->
         PresetView(
             key = "detected",
