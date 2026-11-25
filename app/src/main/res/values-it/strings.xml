@@ -179,9 +179,18 @@
         <item quantity="many">%d app segnate. Tocca ✓ per scollegarle</item>
         <item quantity="other">%d app segnate. Tocca ✓ per scollegarle</item>
     </plurals>
-    <string name="preset_morphe">Morphe</string>
-    <string name="preset_morphe_desc">YouTube, YouTube Music e Reddit con le patch di Morphe</string>
     <string name="presets_detected_section">Su questo dispositivo</string>
     <string name="presets_detected">Patchate da moduli root</string>
     <string name="presets_detected_desc">Trovate nei moduli installati: %1$s</string>
+    <string name="preset_category_morphe">Patch di Morphe</string>
+    <string name="preset_morphe">YouTube e Reddit</string>
+    <string name="preset_morphe_desc">Patch ufficiali di Morphe: YouTube, YouTube Music, Reddit</string>
+    <string name="preset_morphe_social">Social e messaggistica</string>
+    <string name="preset_morphe_social_desc">X e Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
+    <string name="preset_morphe_media">Musica e video</string>
+    <string name="preset_morphe_media_desc">Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
+    <string name="preset_morphe_tools">Foto e strumenti</string>
+    <string name="preset_morphe_tools_desc">Google Foto, Registratore, Microsoft Lens, Photomath, Photoshop Mix e altre (De-Vanced)</string>
+    <string name="preset_morphe_other">Sport, notizie e altro</string>
+    <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
 </resources>

@@ -18,6 +18,7 @@ internal val PACKAGE_NAME = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$")
 
 internal enum class PresetCategory(@StringRes val title: Int) {
     PATCHED(R.string.preset_category_patched),
+    MORPHE(R.string.preset_category_morphe),
     REGION(R.string.preset_category_region),
 }
 
@@ -40,16 +41,6 @@ internal enum class BuiltinPreset(
         packages = listOf(
             "com.google.android.youtube",
             "com.google.android.apps.youtube.music",
-        ),
-    ),
-    MORPHE(
-        R.string.preset_morphe, R.string.preset_morphe_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_play_circle,
-        // root installs mount the patched APK over the original, so the package names stay the same
-        packages = listOf(
-            "com.google.android.youtube",
-            "com.google.android.apps.youtube.music",
-            "com.reddit.frontpage",
         ),
     ),
     SOCIAL(
@@ -97,6 +88,67 @@ internal enum class BuiltinPreset(
             "com.duolingo",
             "com.adobe.lrmobile",
             "net.dinglisch.android.taskerm",
+        ),
+    ),
+    // compatible packages from the patches-list.json of MorpheApp/morphe-patches, crimera/piko
+    // and RookieEnough/De-Vanced (Morphe patch bundles)
+    MORPHE(
+        R.string.preset_morphe, R.string.preset_morphe_desc, PresetCategory.MORPHE,
+        icon = R.drawable.ic_play_circle,
+        packages = listOf(
+            "com.google.android.youtube",
+            "com.google.android.apps.youtube.music",
+            "com.reddit.frontpage",
+        ),
+    ),
+    MORPHE_SOCIAL(
+        R.string.preset_morphe_social, R.string.preset_morphe_social_desc, PresetCategory.MORPHE,
+        icon = R.drawable.ic_forum,
+        packages = listOf(
+            "com.twitter.android",
+            "com.instagram.android",
+            "com.facebook.katana",
+            "com.facebook.orca",
+            "com.viber.voip",
+            "jp.pxv.android",
+            "com.letterboxd.letterboxd",
+        ),
+    ),
+    MORPHE_MEDIA(
+        R.string.preset_morphe_media, R.string.preset_morphe_media_desc, PresetCategory.MORPHE,
+        icon = R.drawable.ic_music_note,
+        packages = listOf(
+            "com.amazon.mp3",
+            "com.bandcamp.android",
+            "com.disney.disneyplus",
+            "com.peacocktv.peacockandroid",
+        ),
+    ),
+    MORPHE_TOOLS(
+        R.string.preset_morphe_tools, R.string.preset_morphe_tools_desc, PresetCategory.MORPHE,
+        icon = R.drawable.ic_apps,
+        packages = listOf(
+            "com.google.android.apps.photos",
+            "com.google.android.apps.recorder",
+            "com.microsoft.office.officelens",
+            "com.microblink.photomath",
+            "com.adobe.photoshopmix",
+            "ginlemon.iconpackstudio",
+            "com.myprog.hexedit",
+            "net.binarymode.android.irplus",
+            "com.drinkplusplus.angulus",
+            "com.nothing.smartcenter",
+        ),
+    ),
+    MORPHE_OTHER(
+        R.string.preset_morphe_other, R.string.preset_morphe_other_desc, PresetCategory.MORPHE,
+        icon = R.drawable.ic_extension,
+        packages = listOf(
+            "com.strava",
+            "com.cricbuzz.android",
+            "nl.sanomamedia.android.nu",
+            "de.gmx.mobile.android.mail",
+            "com.amazon.mShop.android.shopping",
         ),
     ),
     RU_BANKS(

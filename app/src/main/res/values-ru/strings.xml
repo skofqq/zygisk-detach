@@ -184,9 +184,18 @@
         <item quantity="many">Отмечено %d приложений. Нажмите ✓, чтобы отвязать</item>
         <item quantity="other">Отмечено %d приложения. Нажмите ✓, чтобы отвязать</item>
     </plurals>
-    <string name="preset_morphe">Morphe</string>
-    <string name="preset_morphe_desc">YouTube, YouTube Music и Reddit с патчами Morphe</string>
     <string name="presets_detected_section">На этом устройстве</string>
     <string name="presets_detected">Пропатчены root-модулями</string>
     <string name="presets_detected_desc">Найдено в установленных модулях: %1$s</string>
+    <string name="preset_category_morphe">Патчи Morphe</string>
+    <string name="preset_morphe">YouTube и Reddit</string>
+    <string name="preset_morphe_desc">Официальные патчи Morphe: YouTube, YouTube Music, Reddit</string>
+    <string name="preset_morphe_social">Соцсети и мессенджеры</string>
+    <string name="preset_morphe_social_desc">X и Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
+    <string name="preset_morphe_media">Музыка и видео</string>
+    <string name="preset_morphe_media_desc">Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
+    <string name="preset_morphe_tools">Фото и инструменты</string>
+    <string name="preset_morphe_tools_desc">Google Фото, Диктофон, Microsoft Lens, Photomath, Photoshop Mix и другие (De-Vanced)</string>
+    <string name="preset_morphe_other">Спорт, новости и прочее</string>
+    <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
 </resources>
