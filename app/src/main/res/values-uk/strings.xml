@@ -133,10 +133,6 @@
     <string name="preset_google_desc">Фото, Новини та Диктофон із патчами, що відкривають функції</string>
     <string name="preset_other">Інше</string>
     <string name="preset_other_desc">Twitch, Strava, Duolingo, Lightroom, Tasker</string>
-    <string name="preset_ru_banks">Росія: банки</string>
-    <string name="preset_ru_banks_desc">Сбер, Т-Банк, ВТБ, Альфа: встановлюються з RuStore або сайту банку, а не з Google Play</string>
-    <string name="preset_ru_services">Росія: сервіси</string>
-    <string name="preset_ru_services_desc">Яндекс Музика, ВКонтакте, VK Музика, Кінопошук: популярні моди та версії з RuStore</string>
     <string name="preset_china">Китай</string>
     <string name="preset_china_desc">Китайські версії WeChat, QQ, Alipay, Bilibili і Douyin, щоб Play Store не замінив їх міжнародними</string>
     <string name="settings_version_line">Версія %1$s</string>
@@ -196,4 +192,6 @@
     <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
     <string name="preset_morphe_social_desc">Reddit (Morphe), X, Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
     <string name="preset_morphe_media_desc">YouTube, YouTube Music (Morphe), Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
+    <string name="preset_russia">Росія</string>
+    <string name="preset_russia_desc">Банки, Яндекс, VK, Ozon, Авіто, Wildberries: часто встановлюють з RuStore або модифікують</string>
 </resources>

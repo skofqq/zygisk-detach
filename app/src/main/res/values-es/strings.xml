@@ -133,10 +133,6 @@
     <string name="preset_google_desc">Fotos, Noticias y Grabadora parcheadas para desbloquear funciones</string>
     <string name="preset_other">Otras</string>
     <string name="preset_other_desc">Twitch, Strava, Duolingo, Lightroom, Tasker</string>
-    <string name="preset_ru_banks">Rusia: bancos</string>
-    <string name="preset_ru_banks_desc">Sber, T-Bank, VTB, Alfa: se instalan desde RuStore o la web del banco, no desde Google Play</string>
-    <string name="preset_ru_services">Rusia: servicios</string>
-    <string name="preset_ru_services_desc">Yandex Music, VK, VK Music, Kinopoisk: mods populares y versiones de RuStore</string>
     <string name="preset_china">China</string>
     <string name="preset_china_desc">Versiones chinas de WeChat, QQ, Alipay, Bilibili y Douyin, para que Play Store no las sustituya por las internacionales</string>
     <string name="settings_version_line">Versión %1$s</string>
@@ -191,4 +187,6 @@
     <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
     <string name="preset_morphe_social_desc">Reddit (Morphe), X, Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
     <string name="preset_morphe_media_desc">YouTube, YouTube Music (Morphe), Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
+    <string name="preset_russia">Rusia</string>
+    <string name="preset_russia_desc">Bancos, Yandex, VK, Ozon, Avito, Wildberries: a menudo instaladas desde RuStore o modificadas</string>
 </resources>

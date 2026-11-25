@@ -133,10 +133,6 @@
     <string name="preset_google_desc">Мүмкіндіктерді ашатын патчтары бар Фото, Жаңалықтар және Диктофон</string>
     <string name="preset_other">Басқалары</string>
     <string name="preset_other_desc">Twitch, Strava, Duolingo, Lightroom, Tasker</string>
-    <string name="preset_ru_banks">Ресей: банктер</string>
-    <string name="preset_ru_banks_desc">Сбер, Т-Банк, ВТБ, Альфа: Google Play-ден емес, RuStore немесе банк сайтынан орнатылады</string>
-    <string name="preset_ru_services">Ресей: сервистер</string>
-    <string name="preset_ru_services_desc">Яндекс Музыка, ВКонтакте, VK Музыка, Кинопоиск: танымал модтар және RuStore нұсқалары</string>
     <string name="preset_china">Қытай</string>
     <string name="preset_china_desc">WeChat, QQ, Alipay, Bilibili және Douyin қытайлық нұсқалары: Play Store оларды халықаралық нұсқамен алмастырмауы үшін</string>
     <string name="settings_version_line">Нұсқа %1$s</string>
@@ -186,4 +182,6 @@
     <string name="preset_morphe_other_desc">Strava, Cricbuzz, NU.nl, GMX Mail, Amazon Shopping (De-Vanced)</string>
     <string name="preset_morphe_social_desc">Reddit (Morphe), X, Instagram (piko), Facebook, Messenger, Viber, Pixiv, Letterboxd (De-Vanced)</string>
     <string name="preset_morphe_media_desc">YouTube, YouTube Music (Morphe), Amazon Music, Bandcamp, Disney+, Peacock TV (De-Vanced)</string>
+    <string name="preset_russia">Ресей</string>
+    <string name="preset_russia_desc">Банктер, Яндекс, VK, Ozon, Avito, Wildberries: жиі RuStore-дан орнатылады немесе өзгертіледі</string>
 </resources>

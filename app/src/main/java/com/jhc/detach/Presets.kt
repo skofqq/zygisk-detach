@@ -148,24 +148,23 @@ internal enum class BuiltinPreset(
             "com.amazon.mShop.android.shopping",
         ),
     ),
-    RU_BANKS(
-        R.string.preset_ru_banks, R.string.preset_ru_banks_desc, PresetCategory.REGION,
+    // package names checked against their RuStore pages
+    RUSSIA(
+        R.string.preset_russia, R.string.preset_russia_desc, PresetCategory.REGION,
         emoji = "🇷🇺",
         packages = listOf(
             "ru.sberbankmobile",
             "com.idamob.tinkoff.android",
             "ru.vtb24.mobilebanking.android",
             "ru.alfabank.mobile.android",
-        ),
-    ),
-    RU_SERVICES(
-        R.string.preset_ru_services, R.string.preset_ru_services_desc, PresetCategory.REGION,
-        emoji = "🇷🇺",
-        packages = listOf(
             "ru.yandex.music",
+            "ru.yandex.yandexmaps",
+            "ru.kinopoisk",
             "com.vkontakte.android",
             "com.uma.musicvk",
-            "ru.kinopoisk",
+            "ru.ozon.app.android",
+            "com.avito.android",
+            "com.wildberries.ru",
         ),
     ),
     CHINA(
