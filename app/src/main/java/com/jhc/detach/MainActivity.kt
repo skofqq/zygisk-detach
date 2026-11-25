@@ -276,7 +276,7 @@ private fun loadApps(packageManager: PackageManager, userManager: UserManager): 
     }
     for (d in alDetach) {
         if (apps.none { it.packageName == d }) {
-            apps.add(DetachedApp(d, d, installed = false))
+            apps.add(DetachedApp(d, KNOWN_APP_NAMES[d] ?: d, installed = false))
         }
     }
     apps.forEach { it.detached = alDetach.contains(it.packageName) }

@@ -634,7 +634,7 @@ private fun PresetSheet(
                     val app = byPackage[pkg]
                     val canMark = pkg in markable
                     PickRow(
-                        label = app?.label ?: pkg,
+                        label = appName(pkg, app),
                         packageName = pkg,
                         note = when {
                             app == null || !app.installed -> stringResource(R.string.presets_app_missing)
@@ -745,7 +745,7 @@ private fun PresetEditor(
         val app = byPackage[pkg]
         (!onlySelected || pkg in selected) && (query.isBlank() ||
                 pkg.contains(query.trim(), ignoreCase = true) ||
-                app?.label?.contains(query.trim(), ignoreCase = true) == true)
+                appName(pkg, app).contains(query.trim(), ignoreCase = true))
     }
     val typed = query.trim()
     val canAddTyped = PACKAGE_NAME.matches(typed) && typed !in candidates
@@ -880,7 +880,7 @@ private fun PresetEditor(
             itemsIndexed(shown, key = { _, pkg -> pkg }) { index, pkg ->
                 val app = byPackage[pkg]
                 PickRow(
-                    label = app?.label ?: pkg,
+                    label = appName(pkg, app),
                     packageName = pkg,
                     note = if (app == null || !app.installed) stringResource(R.string.presets_app_missing) else null,
                     icon = { AppIconOrPlaceholder(app, icons) },

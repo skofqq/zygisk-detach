@@ -143,6 +143,75 @@ internal enum class BuiltinPreset(
     ),
 }
 
+/** Names of the apps in the built-in presets, shown while they are not installed. */
+internal val KNOWN_APP_NAMES: Map<String, String> = mapOf(
+    "com.google.android.youtube" to "YouTube",
+    "com.google.android.apps.youtube.music" to "YouTube Music",
+    "com.spotify.music" to "Spotify",
+    "com.soundcloud.android" to "SoundCloud",
+    "deezer.android.app" to "Deezer",
+    "com.amazon.mp3" to "Amazon Music",
+    "com.bandcamp.android" to "Bandcamp",
+    "com.disney.disneyplus" to "Disney+",
+    "com.peacocktv.peacockandroid" to "Peacock TV",
+    "tv.twitch.android.app" to "Twitch",
+    "com.reddit.frontpage" to "Reddit",
+    "com.twitter.android" to "X",
+    "com.instagram.android" to "Instagram",
+    "com.instagram.barcelona" to "Threads",
+    "com.zhiliaoapp.musically" to "TikTok",
+    "com.ss.android.ugc.trill" to "TikTok (Asia)",
+    "com.facebook.katana" to "Facebook",
+    "com.facebook.orca" to "Messenger",
+    "com.viber.voip" to "Viber",
+    "com.snapchat.android" to "Snapchat",
+    "com.tumblr" to "Tumblr",
+    "com.pinterest" to "Pinterest",
+    "jp.pxv.android" to "Pixiv",
+    "com.letterboxd.letterboxd" to "Letterboxd",
+    "com.google.android.apps.photos" to "Google Photos",
+    "com.google.android.apps.magazines" to "Google News",
+    "com.google.android.apps.recorder" to "Google Recorder",
+    "com.microsoft.office.officelens" to "Microsoft Lens",
+    "com.microblink.photomath" to "Photomath",
+    "com.adobe.photoshopmix" to "Photoshop Mix",
+    "com.adobe.lrmobile" to "Lightroom",
+    "ginlemon.iconpackstudio" to "Icon Pack Studio",
+    "com.myprog.hexedit" to "Hex Editor",
+    "net.binarymode.android.irplus" to "irplus",
+    "com.drinkplusplus.angulus" to "Angulus",
+    "com.nothing.smartcenter" to "Nothing X",
+    "net.dinglisch.android.taskerm" to "Tasker",
+    "com.strava" to "Strava",
+    "com.duolingo" to "Duolingo",
+    "com.cricbuzz.android" to "Cricbuzz",
+    "nl.sanomamedia.android.nu" to "NU.nl",
+    "de.gmx.mobile.android.mail" to "GMX Mail",
+    "com.amazon.mShop.android.shopping" to "Amazon Shopping",
+    "ru.sberbankmobile" to "СберБанк Онлайн",
+    "com.idamob.tinkoff.android" to "Т-Банк",
+    "ru.vtb24.mobilebanking.android" to "ВТБ Онлайн",
+    "ru.alfabank.mobile.android" to "Альфа-Банк",
+    "ru.yandex.music" to "Яндекс Музыка",
+    "ru.yandex.yandexmaps" to "Яндекс Карты",
+    "ru.kinopoisk" to "Кинопоиск",
+    "com.vkontakte.android" to "ВКонтакте",
+    "com.uma.musicvk" to "VK Музыка",
+    "ru.ozon.app.android" to "Ozon",
+    "com.avito.android" to "Авито",
+    "com.wildberries.ru" to "Wildberries",
+    "com.tencent.mm" to "WeChat",
+    "com.tencent.mobileqq" to "QQ",
+    "com.eg.android.AlipayGphone" to "Alipay",
+    "tv.danmaku.bili" to "Bilibili",
+    "com.ss.android.ugc.aweme" to "Douyin",
+)
+
+/** The app's name: from the system when installed, else from the built-in table, else the package. */
+internal fun appName(packageName: String, app: DetachedApp?): String =
+    app?.takeIf { it.installed && it.label != it.packageName }?.label
+        ?: KNOWN_APP_NAMES[packageName] ?: app?.label ?: packageName
+
 /** An app that a root module replaces with its own (patched) APK. */
 internal class ModuleApp(val packageName: String, val moduleName: String)
 
