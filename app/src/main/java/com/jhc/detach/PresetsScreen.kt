@@ -474,14 +474,6 @@ private fun LazyListScope.presetCards(
     }
 }
 
-private val badgeShapes = listOf(
-    MaterialShapes.Cookie9Sided,
-    MaterialShapes.Clover4Leaf,
-    MaterialShapes.Sunny,
-    MaterialShapes.Cookie4Sided,
-    MaterialShapes.Pentagon,
-)
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
