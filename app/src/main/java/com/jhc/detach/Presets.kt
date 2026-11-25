@@ -36,7 +36,7 @@ internal enum class BuiltinPreset(
 ) {
     YOUTUBE(
         R.string.preset_youtube, R.string.preset_youtube_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_play_circle,
+        icon = R.drawable.ic_logo_youtube,
         packages = listOf(
             "com.google.android.youtube",
             "com.google.android.apps.youtube.music",
@@ -61,7 +61,7 @@ internal enum class BuiltinPreset(
     ),
     MUSIC(
         R.string.preset_music, R.string.preset_music_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_music_note,
+        icon = R.drawable.ic_logo_spotify,
         packages = listOf(
             "com.spotify.music",
             "com.google.android.apps.youtube.music",
@@ -71,7 +71,7 @@ internal enum class BuiltinPreset(
     ),
     GOOGLE(
         R.string.preset_google, R.string.preset_google_desc, PresetCategory.PATCHED,
-        icon = R.drawable.ic_apps,
+        icon = R.drawable.ic_logo_google,
         packages = listOf(
             "com.google.android.apps.photos",
             "com.google.android.apps.magazines",
