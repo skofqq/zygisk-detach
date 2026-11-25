@@ -33,6 +33,8 @@ internal enum class BuiltinPreset(
     @DrawableRes val icon: Int = 0,
     /** A flag instead of an icon, for regional presets. */
     val emoji: String? = null,
+    /** The icon is a full-color logo: shown as is, on a white circle. */
+    val brandColors: Boolean = false,
     val packages: List<String>,
 ) {
     YOUTUBE(
@@ -73,6 +75,7 @@ internal enum class BuiltinPreset(
     GOOGLE(
         R.string.preset_google, R.string.preset_google_desc, PresetCategory.PATCHED,
         icon = R.drawable.ic_logo_google,
+        brandColors = true,
         packages = listOf(
             "com.google.android.apps.photos",
             "com.google.android.apps.magazines",

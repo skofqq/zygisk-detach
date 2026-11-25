@@ -488,7 +488,8 @@ private val badgeShapes = listOf(
 private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
     val builtin = preset.builtin
     val region = builtin?.emoji != null
-    val shape: Shape = badgeShapes[index % badgeShapes.size].toShape()
+    val brand = builtin?.brandColors == true
+    val shape: Shape = if (brand) CircleShape else badgeShapes[index % badgeShapes.size].toShape()
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -496,6 +497,7 @@ private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
             .clip(shape)
             .background(
                 when {
+                    brand -> Color.White
                     preset.detected -> MaterialTheme.colorScheme.primary
                     builtin == null -> MaterialTheme.colorScheme.tertiaryContainer
                     region -> MaterialTheme.colorScheme.secondaryContainer
@@ -513,7 +515,8 @@ private fun PresetBadge(preset: PresetView, index: Int, size: Int = 48) {
             builtin != null -> Icon(
                 painterResource(builtin.icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = if (brand) Color.Unspecified else MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(if (brand) 26.dp else 24.dp)
             )
             else -> Text(
                 preset.title.trim().take(1).uppercase(),
